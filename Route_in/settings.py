@@ -11,12 +11,15 @@ SECRET_KEY = secrets.SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+
+# AUTH_USER_MODEL =
 
 # Application definition
 INSTALLED_APPS = [
     # apps
-
+    'api.apps.ApiConfig',
+    'socialmedia.apps.SocialmediaConfig',
 
     # DRF
     'rest_framework',
@@ -60,16 +63,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Route_in.wsgi.application'
 
+# DRF
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
 
 # Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
 DATABASES = secrets.DATABASES
 
 
 # Password validation
-# https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -87,23 +94,20 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/4.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+TIME_ZONE = 'Asia/Seoul'
 USE_I18N = True
-
-USE_TZ = True
+USE_L10N = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.0/howto/static-files/
+STATIC_URL = '/static/'
+STATICFILES_DIRS = (BASE_DIR / 'static',)
 
-STATIC_URL = 'static/'
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
