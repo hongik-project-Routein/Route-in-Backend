@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     # apps
     'api.apps.ApiConfig',
     'socialmedia.apps.SocialmediaConfig',
+    'account.apps.AccountConfig',
 
     # DRF
     'rest_framework',
