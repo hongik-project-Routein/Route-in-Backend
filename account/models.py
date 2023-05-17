@@ -1,3 +1,4 @@
+from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser,PermissionsMixin
 
@@ -21,3 +22,24 @@ from socialmedia.models import BaseModel
 #     # # last_login
 #     is_active = models.BooleanField(default=False)
 #     is_superuser = models.BooleanField(default=False)
+#
+# class UserManager(BaseUserManager):
+#
+#     def create_user(self, email, password, **kwargs):
+#
+#         user = self.model(
+#             email=email,
+#         )
+#         user.set_password(password)
+#         user.save(using=self._db)
+#         return user
+#
+#     def create_superuser(self, email=None, password=None, **extra_fields):
+#         superuser = self.create_user(
+#             email=email,
+#             password=password,
+#         )
+#         superuser.is_superuser = True
+#         superuser.is_active = True
+#         superuser.save(using=self._db)
+#         return superuser
