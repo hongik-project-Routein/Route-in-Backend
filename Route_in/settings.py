@@ -1,31 +1,23 @@
 import os
 from pathlib import Path
 
-import secrets
+import secretKeys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = secrets.SECRET_KEY
+SECRET_KEY = secretKeys.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-# AUTH_USER_MODEL =
+# AUTH_USER_MODEL = 'account.User'
 
 # Application definition
 INSTALLED_APPS = [
-    # apps
-    'api.apps.ApiConfig',
-    'socialmedia.apps.SocialmediaConfig',
-    'account.apps.AccountConfig',
-
-    # DRF
-    'rest_framework',
-
     # django
     'django.contrib.admin',
     'django.contrib.auth',
@@ -33,6 +25,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # apps
+    'api.apps.ApiConfig',
+    'socialmedia.apps.SocialmediaConfig',
+    'account.apps.AccountConfig',
+
+    # DRF
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -75,7 +75,7 @@ REST_FRAMEWORK = {
 }
 
 # Database
-DATABASES = secrets.DATABASES
+DATABASES = secretKeys.DATABASES
 
 
 # Password validation

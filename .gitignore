@@ -166,4 +166,4 @@ Route_in/Route_in_DB.py
 _media/
 
 # Secret Keys
-secrets.py
+secretKeys.py
