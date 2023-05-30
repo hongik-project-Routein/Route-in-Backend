@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 
+# media 파일 업로드 함수
 def upload_to_func(instance, filename):
     prefix = timezone.now().strftime("%Y/%m/%d")
     file_name = uuid4().hex
@@ -12,6 +13,7 @@ def upload_to_func(instance, filename):
     return "/".join(
         [prefix, file_name, extension, ]
     )
+
 
 class BaseModel(models.Model):
     is_deleted = models.BooleanField(default=False)
@@ -26,6 +28,14 @@ class BaseModel(models.Model):
         self.is_deleted = True,
         self.deleted_at = timezone.now()
         self.save()
+
+
+class MapInfoModel(models.Model):
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+
+    class Meta:
+        abstract = True
 
 
 class Post(BaseModel):
@@ -46,15 +56,9 @@ class Post(BaseModel):
         return self.short_content
 
 
-class Pin(models.Model):
+class Pin(MapInfoModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, )
     image = models.ImageField('IMAGE', upload_to=upload_to_func)
-    # 장소 이름
-    name = models.CharField('NAME', max_length=20)
-    # 위치 좌표 값
-    '''
-    location
-    '''
 
     def __str__(self):
         return self.name
@@ -63,6 +67,7 @@ class Pin(models.Model):
 class Comment(BaseModel):
     writer = models.ForeignKey(User, on_delete=models.CASCADE, )
     post = models.ForeignKey(Post, on_delete=models.CASCADE, )
+    content = models.TextField('CONTENT', max_length=200, blank=True)
     is_reply = models.BooleanField(default=False)
     # like_users = models.ManyToManyField('LIKE_USERS', )
     # tagged_users = models.ManyToManyField('TAGGED_USERS', )
@@ -75,15 +80,11 @@ class Comment(BaseModel):
         return self.short_content
 
 
-class Story(BaseModel):
+class Story(BaseModel, MapInfoModel):
     writer = models.ForeignKey(User, on_delete=models.CASCADE, )
     image = models.ImageField('IMAGE', upload_to=upload_to_func)
     # like_users = models.ManyToManyField('LIKE_USERS', )
     # tagged_users = models.ManyToManyField('TAGGED_USERS', )
-    # 위치 좌표값
-    '''
-    location
-    '''
     report_count = models.IntegerField('REPORT_COUNT', default=0)
 
 

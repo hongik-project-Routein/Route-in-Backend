@@ -1,30 +1,46 @@
-from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
-
-from api.serializers import PostListSerializer, PostRetrieveSerializer, PinListSerializer, PinRetrieveSerializer, CommentSerializer, StoryListSerializer, StoryRetrieveSerializer
+from django.contrib.auth.models import User
+# from rest_framework import viewsets
+# from .serializers import UserSerializer, PostSerializer
+from rest_framework.generics import CreateAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from .serializers import PostSerializer, PinSerializer, CommentSerializer, StorySerializer
 from socialmedia.models import Post, Pin, Comment, Story
 
 
-class PostListAPIView(ListAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostListSerializer
-class PostRetrieveAPIView(RetrieveAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostRetrieveSerializer
+# class UserViewSet(viewsets.ModelViewSet):
+#     queryset = User.objects.all()
+#     serializer_class = UserSerializer
+#
+# class PostViewSet(viewsets.ModelViewSet):
+#     queryset = Post.objects.all()
+#     serializer_class = PostSerializer
 
-class PinListAPIView(ListAPIView):
-    queryset = Pin.objects.all()
-    serializer_class = PinListSerializer
-class PinRetrieveAPIView(RetrieveAPIView):
-    queryset = Pin.objects.all()
-    serializer_class = PinRetrieveSerializer
+class PostListAPIView(ListCreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
 
-class CommentCreateAPIView(CreateAPIView):
+class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+
+
+class PinListAPIView(ListCreateAPIView):
+    queryset = Pin.objects.all()
+    serializer_class = PinSerializer
+
+class PinRetrieveAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Pin.objects.all()
+    serializer_class = PinSerializer
+
+
+class CommentCreateAPIView(ListCreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
-class StoryListAPIView(ListAPIView):
+
+class StoryListAPIView(ListCreateAPIView):
     queryset = Story.objects.all()
-    serializer_class = StoryListSerializer
-class StoryRetrieveAPIView(RetrieveAPIView):
+    serializer_class = StorySerializer
+
+class StoryRetrieveAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Story.objects.all()
-    serializer_class = StoryRetrieveSerializer
+    serializer_class = StorySerializer

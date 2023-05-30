@@ -15,6 +15,15 @@
 #     )
 #     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, unique=True)
 #
+#     def upload_to_func(instance, filename):
+#     prefix = timezone.now().strftime("%Y/%m/%d")
+#     file_name = uuid4().hex
+#     extension = os.path.splitext(filename)[-1].lower()
+#     return "/".join(
+#         [prefix, file_name, extension, ]
+#     )
+#     image = models.ImageField('IMAGE', upload_to=upload_to_func)
+#
 #     follower_set = models.ManyToManyField('self', blank=True)
 #     following_set = models.ManyToManyField('self', blank=True)
 #

@@ -14,7 +14,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-# AUTH_USER_MODEL = 'account.User'
+####################################
+# AUTH_USER_MODEL = 'account.User' #
+####################################
 
 # Application definition
 INSTALLED_APPS = [
@@ -102,6 +104,8 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = False
 
+BASE_COUNTRY = 'KR'
+GOOGLE_API_KEY = secretKeys.GOOGLE_API_KEY
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
