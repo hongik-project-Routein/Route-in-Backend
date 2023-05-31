@@ -14,9 +14,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-####################################
-# AUTH_USER_MODEL = 'account.User' #
-####################################
+##################################
+AUTH_USER_MODEL = 'account.User'
+##################################
 
 # Application definition
 INSTALLED_APPS = [
@@ -35,6 +35,7 @@ INSTALLED_APPS = [
 
     # DRF
     'rest_framework',
+
 ]
 
 MIDDLEWARE = [

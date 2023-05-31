@@ -1,5 +1,34 @@
 from django.contrib import admin
+from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
+from .models import User
+from .forms import UserCreationForm, UserChangeForm
 
-# admin.site.register(User, UserAdmin)
+class CustomUserAdmin(UserAdmin):
+    # 폼 설정
+    add_form = UserCreationForm
+    form = UserChangeForm
+
+    list_display = ('name', 'email', 'age', 'gender', 'joined_at',)
+    list_filter = ('is_superuser',)
+
+    fieldsets = (
+        (None, {'fields': ('name', 'password',)}),
+        ('Personal info', {'fields': ('email', 'age', 'gender', 'image')}),
+        ('Permissions', {'fields': ('is_superuser',)}),
+    )
+
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('name', 'password1', 'password2')}
+         ),
+    )
+    search_fields = ('name',)
+    ordering = ('name',)
+    filter_horizontal = ()
+
+
+
+admin.site.register(User, CustomUserAdmin)
+admin.site.unregister(Group)

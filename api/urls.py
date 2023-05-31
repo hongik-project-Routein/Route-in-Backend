@@ -14,6 +14,7 @@ urlpatterns = [
 
     path('post/', views.PostListAPIView.as_view(), name='post-list'),
     path('post/<int:pk>/', views.PostRetrieveAPIView.as_view(), name='post-detail'),
+    path('post/<int:pk>/', views.PostLikeAPIView.as_view(), name='post-like'),
 
     path('pin/', views.PinListAPIView.as_view(), name='pin-list'),
     path('pin/<int:pk>/', views.PinRetrieveAPIView.as_view(), name='pin-detail'),
