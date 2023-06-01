@@ -25,7 +25,7 @@ class BaseModel(models.Model):
         abstract = True
 
     def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True,
+        self.is_deleted = True
         self.deleted_at = timezone.now()
         self.save()
 
@@ -41,11 +41,10 @@ class MapInfoModel(models.Model):
 class Post(BaseModel):
     writer = models.ForeignKey(User, on_delete=models.CASCADE, )
     content = models.TextField('CONTENT', max_length=200, blank=True)
-    main_image = models.ImageField('MAIN_IMAGE', upload_to=upload_to_func)
-    like_users = models.ManyToManyField(User, related_name='like_posts')
+    like_users = models.ManyToManyField(User, related_name='like_posts', blank=True)
     like = models.IntegerField('LIKE', default=0)
-    # bookmark_users = models.ManyToManyField('BOOKMARK_USERS', )
-    # tagged_users = models.ManyToManyField('TAGGED_USERS', )
+    # bookmark_users = models.ManyToManyField(User, related_name='like_posts', blank=True)
+    # tagged_users = models.ManyToManyField(User, related_name='like_posts', blank=True)
     pin_count = models.IntegerField('PIN_COUNT', default=0)
     report_count = models.IntegerField('REPORT_COUNT', default=0)
 
@@ -69,8 +68,7 @@ class Pin(MapInfoModel):
 class Comment(BaseModel):
     writer = models.ForeignKey(User, on_delete=models.CASCADE, )
     post = models.ForeignKey(Post, on_delete=models.CASCADE, )
-    content = models.TextField('CONTENT', max_length=200, blank=True)
-    is_reply = models.BooleanField(default=False)
+    content = models.TextField('CONTENT', max_length=200)
     # like_users = models.ManyToManyField('LIKE_USERS', )
     # tagged_users = models.ManyToManyField('TAGGED_USERS', )
 
@@ -91,7 +89,7 @@ class Story(BaseModel, MapInfoModel):
 
 
 class Hashtag(models.Model):
-    name = models.CharField('NAME', max_length=20)
+    name = models.CharField('NAME', max_length=20, unique=True)
 
     def __str__(self):
         return self.name
