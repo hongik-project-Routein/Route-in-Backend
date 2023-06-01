@@ -35,10 +35,13 @@ INSTALLED_APPS = [
 
     # DRF
     'rest_framework',
+    'corsheaders',
 
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',     # CORS 관련 추가
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -49,6 +52,10 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'Route_in.urls'
+
+CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:3000'
+                         ,'http://localhost:3000']
+CORS_ALLOW_CREDENTIALS = True
 
 TEMPLATES = [
     {
