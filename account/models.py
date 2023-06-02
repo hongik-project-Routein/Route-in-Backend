@@ -36,7 +36,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     age = models.IntegerField('AGE', unique=True, null=True)
 
     GENDER_CHOICES = ( ('M', 'Male'), ('F', 'Female') )
-    gender = models.CharField('GENDER', max_length=1, choices=GENDER_CHOICES, unique=True)
+    gender = models.CharField('GENDER', max_length=1, choices=GENDER_CHOICES)
 
     def upload_to_func(instance, filename):
         prefix = timezone.now().strftime("%Y/%m/%d")
