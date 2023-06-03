@@ -33,7 +33,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     name = models.CharField('NAME', max_length=20, unique=True)
     email = models.EmailField('EMAIL', max_length=40, null=True, blank=True)
-    age = models.IntegerField('AGE', unique=True, null=True)
+    age = models.IntegerField('AGE', null=True, blank=True)
 
     GENDER_CHOICES = ( ('M', 'Male'), ('F', 'Female') )
     gender = models.CharField('GENDER', max_length=1, choices=GENDER_CHOICES)
@@ -45,7 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return "/".join(
             [prefix, file_name, extension, ]
         )
-    image = models.ImageField('IMAGE', upload_to=upload_to_func)
+    image = models.ImageField('IMAGE', upload_to=upload_to_func, blank=True)
 
     follower_set = models.ManyToManyField('self', blank=True)
     following_set = models.ManyToManyField('self', blank=True)

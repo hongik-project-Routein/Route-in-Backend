@@ -1,39 +1,37 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from account.models import User
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404, ListAPIView, \
+    RetrieveAPIView, RetrieveDestroyAPIView
 from rest_framework.response import Response
-from .serializers import PostSerializer, PostLikeSerializer, PinSerializer, CommentSerializer, StorySerializer, \
-    HashtagSerializer, PostDetailSerializer, PostBookmarkSerializer
+from .serializers import PostSerializer, PostLikeSerializer, PinDetailSerializer, CommentSerializer, StorySerializer, \
+    HashtagSerializer, PostDetailSerializer, PostBookmarkSerializer, UserSerializer, PostRetrieveSerializer, \
+    PinSerializer
 from socialmedia.models import Post, Pin, Comment, Story, Hashtag
 
 
-# 포스트 목록 및 생성
-class PostListAPIView(ListCreateAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
+# User List
+class UserListAPIView(ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
+
+# User Retrieve
+class UserRetrieveAPIView(RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+# Post List + Create
+class PostListAPIView(ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(writer=self.request.user)
 
-
-# 포스트 상세 및 수정, 삭제
-class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostDetailSerializer
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        comment_list = instance.comment_set.all()
-        data = {
-            'post': instance,
-            'comment_list': comment_list,
-        }
-        serializer = self.get_serializer(instance=data)
-        return Response(serializer.data)
+    serializer_class = PostSerializer
 
 
-# 포스트 좋아요
+# Post Like
 class PostLikeAPIView(APIView):
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
@@ -47,12 +45,10 @@ class PostLikeAPIView(APIView):
         if user in post.like_users.all():
             # 이미 좋아요한 경우
             post.like_users.remove(user)
-            post.like_count -= 1
             post.save()
             return Response(post.like_count, status=status.HTTP_200_OK)
         else:
             post.like_users.add(user)
-            post.like_count += 1
             post.save()
             return Response(post.like_count, status=status.HTTP_200_OK)
 
@@ -60,7 +56,7 @@ class PostLikeAPIView(APIView):
     serializer_class = PostLikeSerializer
 
 
-# 포스트 북마크
+# Post Bookmark
 class PostBookmarkAPIView(APIView):
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
@@ -84,44 +80,97 @@ class PostBookmarkAPIView(APIView):
     queryset = Post.objects.all()
     serializer_class = PostBookmarkSerializer
 
-# 핀 목록 및 생성
+
+# Post Comment List
+class PostCommentListAPIView(ListCreateAPIView):
+
+    def get(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        comments = post.comments.all()
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def perform_create(self, serializer):
+        serializer.save(writer=self.request.user)
+
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+
+# Pin List + Create
 class PinListAPIView(ListCreateAPIView):
     queryset = Pin.objects.all()
     serializer_class = PinSerializer
 
 
-# 핀 상세 및 수정, 삭제
-class PinRetrieveAPIView(RetrieveUpdateDestroyAPIView):
+# Pin Retrieve
+class PinRetrieveAPIView(RetrieveAPIView):
+    def get(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        pins = post.pins.all()
+        serializer = PinSerializer(pins, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     queryset = Pin.objects.all()
-    serializer_class = PinSerializer
+    serializer_class = PinDetailSerializer
 
 
-# 댓글 목록 및 생성
-class CommentCreateAPIView(ListCreateAPIView):
+# Comment List
+class CommentListAPIView(ListCreateAPIView):
+
+    def post(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        post.comment_count += 1
+        post.save()
+        return Response(post.comment_count, status=status.HTTP_200_OK)
+
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
 
-# 스토리 목록 및 생성
+# Story List + Create
 class StoryListAPIView(ListCreateAPIView):
     queryset = Story.objects.all()
     serializer_class = StorySerializer
 
 
-# 스토리 상세 및 수정, 삭제
-class StoryRetrieveAPIView(RetrieveUpdateDestroyAPIView):
+# Story Retrieve + Destroy
+class StoryRetrieveAPIView(RetrieveDestroyAPIView):
     queryset = Story.objects.all()
     serializer_class = StorySerializer
 
 
-# 해시태그 목록 및 생성
+# Hashtag List + Create
 class HashtagListAPIView(ListCreateAPIView):
     queryset = Hashtag.objects.all()
     serializer_class = HashtagSerializer
 
 
-# 해시태그 상세 및 수정, 삭제
-class HashtagRetrieveAPIView(RetrieveUpdateDestroyAPIView):
+# Hashtag Retrieve + Destroy
+class HashtagRetrieveAPIView(RetrieveDestroyAPIView):
     queryset = Hashtag.objects.all()
     serializer_class = HashtagSerializer
 
+
+#############
+# 프론트 요청 #
+############
+
+# Post Retrieve + Update + Destroy
+class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        pin = instance.pins.all()
+        user = instance.writer
+        comment = instance.comments.all()
+        data = {
+            'post': instance,
+            'pin': pin,
+            'user': user,
+            'comment': comment,
+        }
+        serializer = self.get_serializer(instance=data)
+        return Response(serializer.data)
+
+    queryset = Post.objects.all()
+    serializer_class = PostRetrieveSerializer
