@@ -6,7 +6,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
     RetrieveAPIView, RetrieveDestroyAPIView, CreateAPIView
 from rest_framework.response import Response
 from .serializers import PostSerializer, PostLikeSerializer, PinDetailSerializer, CommentSerializer, StorySerializer, \
-    HashtagSerializer, PostDetailSerializer, PostBookmarkSerializer, UserSerializer, PostRetrieveSerializer, \
+    HashtagSerializer, PostBookmarkSerializer, UserSerializer, PostRetrieveSerializer, \
     PinSerializer, PostCreateSerializer
 from socialmedia.models import Post, Pin, Comment, Story, Hashtag
 
@@ -23,13 +23,11 @@ class UserRetrieveAPIView(RetrieveAPIView):
     serializer_class = UserSerializer
 
 
-# Post List + Create xxx
-class PostListAPIView(ListCreateAPIView):
+# Post List
+class PostListAPIView(ListAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(writer=self.request.user)
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -54,6 +52,9 @@ class PostCreateAPIView(CreateAPIView):
         post = serializer.save()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    # def perform_create(self, serializer):
+    #     serializer.save(writer=self.request.user)
 
     queryset = Post.objects.all()
     serializer_class = PostCreateSerializer
