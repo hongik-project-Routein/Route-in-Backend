@@ -1,5 +1,6 @@
 import rest_framework.permissions
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser
 from rest_framework.views import APIView
 from account.models import User
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404, ListAPIView, \
@@ -45,19 +46,23 @@ class PostListAPIView(ListAPIView):
 
 # Post Create
 class PostCreateAPIView(CreateAPIView):
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    def perform_create(self, serializer):
         serializer.save(writer=self.request.user)
-        post = serializer.save()
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    # def perform_create(self, serializer):
-    #     serializer.save(writer=self.request.user)
+    def create(self, request, *args, **kwargs):
+        # 이미지 파일이 포함된 요청을 처리하기 위해 request.data 대신 request.FILES 사용
+        serializer = self.get_serializer(data=request.data, files=request.FILES)
+
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     queryset = Post.objects.all()
     serializer_class = PostCreateSerializer
+    parser_classes = [MultiPartParser]
 
 
 
