@@ -3,11 +3,11 @@ from rest_framework import status
 from rest_framework.views import APIView
 from account.models import User
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404, ListAPIView, \
-    RetrieveAPIView, RetrieveDestroyAPIView
+    RetrieveAPIView, RetrieveDestroyAPIView, CreateAPIView
 from rest_framework.response import Response
 from .serializers import PostSerializer, PostLikeSerializer, PinDetailSerializer, CommentSerializer, StorySerializer, \
     HashtagSerializer, PostDetailSerializer, PostBookmarkSerializer, UserSerializer, PostRetrieveSerializer, \
-    PinSerializer
+    PinSerializer, PostCreateSerializer
 from socialmedia.models import Post, Pin, Comment, Story, Hashtag
 
 
@@ -23,7 +23,7 @@ class UserRetrieveAPIView(RetrieveAPIView):
     serializer_class = UserSerializer
 
 
-# Post List + Create
+# Post List + Create xxx
 class PostListAPIView(ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -43,6 +43,21 @@ class PostListAPIView(ListCreateAPIView):
             item['comment'] = Comment.objects.filter(post_id=post_id).values('id', 'updated_at', 'post', 'writer', 'content')
 
         return Response(data)
+
+
+# Post Create
+class PostCreateAPIView(CreateAPIView):
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(writer=self.request.user)
+        post = serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    queryset = Post.objects.all()
+    serializer_class = PostCreateSerializer
+
 
 
 # Post Like

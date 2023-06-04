@@ -62,7 +62,8 @@ class Post(BaseModel):
 class Pin(MapInfoModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='pins')
     image = models.ImageField('IMAGE', upload_to=upload_to_func)
-    content = models.TextField('SUB_CONTENT', max_length=200, blank=True)
+    pin_hashtag = models.CharField('PIN_HASHTAG', max_length=20, blank=True, null=True)
+    content = models.TextField('SUB_CONTENT', max_length=200, blank=True, null=True)
 
     def __str__(self):
         return self.content[:10]

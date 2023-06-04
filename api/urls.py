@@ -8,6 +8,7 @@ urlpatterns = [
     path('user/<int:pk>/', views.UserRetrieveAPIView.as_view(), name='user-retrieve'),
 
     path('post/', views.PostListAPIView.as_view(), name='post-list'),
+    path('post/create/', views.PostCreateAPIView.as_view(), name='post-create'),
     path('post/<int:pk>/', views.PostRetrieveAPIView.as_view(), name='post-retrieve'),
     path('post/<int:pk>/like', views.PostLikeAPIView.as_view(), name='post-like'),
     path('post/<int:pk>/bookmark', views.PostBookmarkAPIView.as_view(), name='post-bookmark'),
