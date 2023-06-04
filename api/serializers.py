@@ -60,21 +60,6 @@ class PostBookmarkSerializer(serializers.ModelSerializer):
         fields = ['bookmark_users']
 
 
-# Comment Sub Serializer (for PostDetailSerializer)
-class CommentSubSerializer(serializers.ModelSerializer):
-    writer = serializers.ReadOnlyField(source='writer.name')
-
-    class Meta:
-        model = Comment
-        fields = ['id', 'writer', 'content', 'updated_at']
-
-
-# Post Detail Serializer
-class PostDetailSerializer(serializers.Serializer):
-    post = PostSerializer()
-    comment_list = CommentSubSerializer(many=True)
-
-
 # Pin Detail Serializer
 class PinDetailSerializer(serializers.ModelSerializer):
 
@@ -85,6 +70,7 @@ class PinDetailSerializer(serializers.ModelSerializer):
 
 # Pin Serializer
 class PinSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(max_length=None, allow_empty_file=True, use_url=True)
 
     class Meta:
         model = Pin
@@ -104,10 +90,11 @@ class PostCreateSerializer(serializers.ModelSerializer):
         post = Post.objects.create(**validated_data)
 
         for pdata in pins_data:
-            Pin.objects.create(post=post, **pdata)
+            image_data = pdata.pop('image')
+            pin = Pin.objects.create(post=post, **pdata)
+            pin.image.save(image_data.name, image_data)
 
         return post
-
 
 
 # Comment Serializer
@@ -137,11 +124,6 @@ class HashtagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hashtag
         fields = ['id', 'name']
-
-
-#############
-# 프론트 요청 #
-############
 
 
 # Post Retrieve Serializer
