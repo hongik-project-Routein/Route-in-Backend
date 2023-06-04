@@ -1,3 +1,4 @@
+import rest_framework.permissions
 from rest_framework import status
 from rest_framework.views import APIView
 from account.models import User
@@ -33,6 +34,8 @@ class PostListAPIView(ListCreateAPIView):
 
 # Post Like
 class PostLikeAPIView(APIView):
+    permission_classes = [rest_framework.permissions.AllowAny]
+
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
         serializer = PostLikeSerializer(post)
@@ -46,11 +49,11 @@ class PostLikeAPIView(APIView):
             # 이미 좋아요한 경우
             post.like_users.remove(user)
             post.save()
-            return Response(post.like_count, status=status.HTTP_200_OK)
+            return Response(post.like_users.all().count(), status=status.HTTP_200_OK)
         else:
             post.like_users.add(user)
             post.save()
-            return Response(post.like_count, status=status.HTTP_200_OK)
+            return Response(post.like_users.all().count(), status=status.HTTP_200_OK)
 
     queryset = Post.objects.all()
     serializer_class = PostLikeSerializer
