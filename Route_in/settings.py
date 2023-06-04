@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import secretKeys
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -56,6 +57,10 @@ ROOT_URLCONF = 'Route_in.urls'
 CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:3000'
                          ,'http://localhost:3000']
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = list(default_headers) + ['X-CSRFTOKEN']
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
+
 
 TEMPLATES = [
     {
