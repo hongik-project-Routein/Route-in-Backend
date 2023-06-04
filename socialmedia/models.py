@@ -34,8 +34,8 @@ class BaseModel(models.Model):
 # MapInfoModel (subclass models: Pin, Story)
 class MapInfoModel(models.Model):
     mapID = models.CharField('MAPID', max_length=30, blank=True)
-    latitude = models.DecimalField('LATITUDE', max_digits=9, decimal_places=6, blank=True, null=True)
-    longitude = models.DecimalField('LONGITUDE', max_digits=9, decimal_places=6, blank=True, null=True)
+    latitude = models.DecimalField('LATITUDE', max_digits=18, decimal_places=15, blank=True, null=True)
+    longitude = models.DecimalField('LONGITUDE', max_digits=18, decimal_places=15, blank=True, null=True)
 
     class Meta:
         abstract = True
