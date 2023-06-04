@@ -46,23 +46,16 @@ class PostListAPIView(ListAPIView):
 
 # Post Create
 class PostCreateAPIView(CreateAPIView):
-    def perform_create(self, serializer):
-        serializer.save(writer=self.request.user)
-
     def create(self, request, *args, **kwargs):
-        # 이미지 파일이 포함된 요청을 처리하기 위해 request.data 대신 request.FILES 사용
-        serializer = self.get_serializer(data=request.data, files=request.FILES)
-
-        if serializer.is_valid():
-            self.perform_create(serializer)
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(writer=self.request.user)
+        post = serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     queryset = Post.objects.all()
     serializer_class = PostCreateSerializer
-    parser_classes = [MultiPartParser]
 
 
 
