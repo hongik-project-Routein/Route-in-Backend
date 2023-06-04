@@ -92,7 +92,7 @@ class PostCreateSerializer(serializers.ModelSerializer):
         for pdata in pins_data:
             image_data = pdata.pop('image')
             pin = Pin.objects.create(post=post, **pdata)
-            pin.image.save(image_data.name, image_data)
+            pin.image.save(image_data.name, image_data, save=True)
 
         return post
 
