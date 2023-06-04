@@ -25,11 +25,24 @@ class UserRetrieveAPIView(RetrieveAPIView):
 
 # Post List + Create
 class PostListAPIView(ListCreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+
     def perform_create(self, serializer):
         serializer.save(writer=self.request.user)
 
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+
+        for item in data:
+            post_id = item['id']
+            item['pin'] = Pin.objects.filter(post_id=post_id).values('image', 'latitude', 'longitude')
+            item['user'] = User.objects.filter(name=item['writer']).values('image')
+            item['comment'] = Comment.objects.filter(post_id=post_id).values('id', 'updated_at', 'post', 'writer', 'content')
+
+        return Response(data)
 
 
 # Post Like
@@ -154,10 +167,6 @@ class HashtagRetrieveAPIView(RetrieveDestroyAPIView):
     queryset = Hashtag.objects.all()
     serializer_class = HashtagSerializer
 
-
-#############
-# 프론트 요청 #
-############
 
 # Post Retrieve + Update + Destroy
 class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
