@@ -75,7 +75,7 @@ class PostDetailSerializer(serializers.Serializer):
     comment_list = CommentSubSerializer(many=True)
 
 
-# Pin Serializer
+# Pin Detail Serializer
 class PinDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -88,7 +88,26 @@ class PinSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Pin
-        fields = '__all__'
+        fields = ['image', 'pin_hashtag', 'content', 'latitude', 'longitude', 'mapID']
+
+
+# Post Create Serializer
+class PostCreateSerializer(serializers.ModelSerializer):
+    pins = PinSerializer(many=True)
+
+    class Meta:
+        model = Post
+        fields = ['content', 'pins']
+
+    def create(self, validated_data):
+        pins_data = validated_data.pop('pins')
+        post = Post.objects.create(**validated_data)
+
+        for pdata in pins_data:
+            Pin.objects.create(post=post, **pdata)
+
+        return post
+
 
 
 # Comment Serializer
