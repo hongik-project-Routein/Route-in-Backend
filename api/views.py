@@ -8,7 +8,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.response import Response
 from .serializers import PostSerializer, PostLikeSerializer, PinDetailSerializer, CommentSerializer, StorySerializer, \
     HashtagSerializer, PostBookmarkSerializer, UserSerializer, PostRetrieveSerializer, \
-    PinSerializer, PostCreateSerializer
+    PinSerializer, PostCreateSerializer, UserImageSerializer
 from socialmedia.models import Post, Pin, Comment, Story, Hashtag
 
 
@@ -37,8 +37,8 @@ class PostListAPIView(ListAPIView):
 
         for item in data:
             post_id = item['id']
-            item['pin'] = Pin.objects.filter(post_id=post_id).values('image', 'latitude', 'longitude')
-            item['user'] = User.objects.filter(name=item['writer']).values('image')
+            item['pin'] = PinSerializer(Pin.objects.filter(post_id=post_id), many=True).data
+            item['user'] = UserImageSerializer(User.objects.filter(name=item['writer']), many=True).data
             item['comment'] = Comment.objects.filter(post_id=post_id).values('id', 'updated_at', 'post', 'writer', 'content')
 
         return Response(data)
@@ -58,7 +58,6 @@ class PostCreateAPIView(CreateAPIView):
 
     queryset = Post.objects.all()
     serializer_class = PostCreateSerializer
-
 
 
 # Post Like
