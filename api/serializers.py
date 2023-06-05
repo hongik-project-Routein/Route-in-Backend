@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from socialmedia.models import Post, Pin, Comment, Story, Hashtag
 from account.models import User
+from decimal import Decimal
 
 
 # User Serializer
@@ -68,7 +69,7 @@ class PinDetailSerializer(serializers.ModelSerializer):
         fields = ['image', 'latitude', 'longitude']
 
 
-# Pin Serializer
+# Pin Serializer (for Post Create Serializer)
 class PinSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(max_length=None, allow_empty_file=True, use_url=True)
 
@@ -91,7 +92,14 @@ class PostCreateSerializer(serializers.ModelSerializer):
 
         for pdata in pins_data:
             image_data = pdata['image']
-            pin = Pin.objects.create(post=post, image=image_data, **pdata)
+            print(image_data)
+
+            lat_data = pdata['latitude']
+            print(lat_data)
+            lng_data = pdata['longitude']
+            print(lng_data)
+            pin = Pin.objects.create(post=post, image=image_data, latitude=Decimal(lat_data), longitude=Decimal(lng_data), **pdata)
+            print(pin)
             pin.image.save(image_data.name, image_data, save=True)
 
         return post
