@@ -86,12 +86,12 @@ class PostCreateSerializer(serializers.ModelSerializer):
         fields = ['content', 'pins']
 
     def create(self, validated_data):
-        pins_data = validated_data.pop('pins')
+        pins_data = validated_data['pins']
         post = Post.objects.create(**validated_data)
 
         for pdata in pins_data:
-            image_data = pdata.pop('image')
-            pin = Pin.objects.create(post=post, **pdata)
+            image_data = pdata['image']
+            pin = Pin.objects.create(post=post, image=image_data, **pdata)
             pin.image.save(image_data.name, image_data, save=True)
 
         return post
