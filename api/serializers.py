@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from socialmedia.models import Post, Pin, Comment, Story, Hashtag
-from account.models import User
+from accounts.models import User
 from decimal import Decimal
 
 
@@ -14,6 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 # User ImageSerializer
 class UserImageSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(max_length=None, allow_empty_file=True, use_url=True)
 
     class Meta:
         model = User
@@ -63,6 +64,7 @@ class PostBookmarkSerializer(serializers.ModelSerializer):
 
 # Pin Detail Serializer
 class PinDetailSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(max_length=None, allow_empty_file=True, use_url=True)
 
     class Meta:
         model = Pin

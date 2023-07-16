@@ -2,7 +2,7 @@ import rest_framework.permissions
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser
 from rest_framework.views import APIView
-from account.models import User
+from accounts.models import User
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404, ListAPIView, \
     RetrieveAPIView, RetrieveDestroyAPIView, CreateAPIView
 from rest_framework.response import Response
@@ -29,7 +29,6 @@ class PostListAPIView(ListAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
-
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
@@ -37,7 +36,7 @@ class PostListAPIView(ListAPIView):
 
         for item in data:
             post_id = item['id']
-            item['pin'] = PinSerializer(Pin.objects.filter(post_id=post_id), many=True).data
+            item['pin'] = PinDetailSerializer(Pin.objects.filter(post_id=post_id), many=True).data
             item['user'] = UserImageSerializer(User.objects.filter(name=item['writer']), many=True).data
             item['comment'] = Comment.objects.filter(post_id=post_id).values('id', 'updated_at', 'post', 'writer', 'content')
 
