@@ -1,21 +1,29 @@
 import os
 from pathlib import Path
-import secretKeys
+import json
+import sys
 from corsheaders.defaults import default_headers
 from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = secretKeys.SECRET_KEY
+ROOT_DIR = os.path.dirname(BASE_DIR)
+SECRET_BASE_FILE = os.path.join(BASE_DIR, 'secrets.json')
+
+secrets = json.loads(open(SECRET_BASE_FILE).read())
+for key, value in secrets.items():
+    setattr(sys.modules[__name__], key, value)
+
+SECRET_KEY = secrets["SECRET_KEY"]
 
 DEBUG = True
 
 
-#####################################
-ALLOWED_HOSTS = ['*']               #
-AUTH_USER_MODEL = 'accounts.User'    #
-SITE_ID = 1                         #
-#####################################
+#################################
+ALLOWED_HOSTS = ['*']
+AUTH_USER_MODEL = 'accounts.User'
+SITE_ID = 1
+#################################
 
 
 # Application definition
@@ -29,27 +37,47 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
-    # apps
+    # my apps
     'api.apps.ApiConfig',
     'socialmedia.apps.SocialmediaConfig',
-    'accounts.apps.AccountConfig',
+    'accounts.apps.AccountsConfig',
 
     # DRF
     'rest_framework',
     'rest_framework.authtoken',
-    'corsheaders',
-
-    # django-rest-auth
+    'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'dj_rest_auth',
     'dj_rest_auth.registration',
+    'corsheaders',
 
     # django-allauth
-    'allauth',
+    'allauth',  # 0.51.0
     'allauth.account',
     'allauth.socialaccount',
-
+    'allauth.socialaccount.providers.kakao',
+    'allauth.socialaccount.providers.google',
 ]
+
+
+# JWT settings
+REST_USE_JWT = True
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+}
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',     # CORS 관련 추가
@@ -92,43 +120,28 @@ WSGI_APPLICATION = 'Route_in.wsgi.application'
 
 # DRF
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 7/14 'rest_framework.authentication.BasicAuthentication',
-
-        'rest_framework.authentication.SessionAuthentication',
-        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
-   ],
     'DEFAULT_PERMISSION_CLASSES': [
-        # 7/14 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
-
         # API 접근 시 헤더에 access token을 포함하여 유효한 유저만 접근 가능(Authenticated)
         'rest_framework.permissions.IsAuthenticated',
-    ]
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+   ],
+
 }
 
 
-# JWT settings
-ACCOUNT_USER_MODEL_USERNAME_FIELD = 'name'
-ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = 'username'
-
-ACCOUNTE_USER_MODEL_EMAIL_FIELD = None
-ACCOUNT_EMAIL_REQUIRED = False
-ACCOUNT_EMAIL_VERIFICATION = 'none'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-REST_USE_JWT = True
-
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': True,
+REST_AUTH = {
+    'USE_JWT': True,
+    'SESSION_LOGIN': False,
+    'JWT_AUTH_HTTPONLY': False,
 }
 
 
 # Database
-DATABASES = secretKeys.DATABASES
+DATABASES = secrets["DATABASES"]
 
 
 # Password validation
@@ -156,7 +169,6 @@ USE_L10N = True
 USE_TZ = False
 BASE_COUNTRY = 'KR'
 
-GOOGLE_API_KEY = secretKeys.GOOGLE_API_KEY
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'

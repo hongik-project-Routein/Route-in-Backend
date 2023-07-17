@@ -168,3 +168,4 @@ media/
 
 # Secret Keys
 secretKeys.py
+secrets.json

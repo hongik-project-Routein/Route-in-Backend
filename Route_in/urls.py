@@ -7,10 +7,10 @@ from Route_in import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
 
+    path('accounts/', include('accounts.urls')),
     path('accounts/', include('dj_rest_auth.urls')),
     path('accounts/', include('dj_rest_auth.registration.urls')),
     path('accounts/', include('allauth.urls')),
-    path('accounts/', include('accounts.urls')),
 
     path('api/', include('api.urls')),
     path('socialmedia/', include('socialmedia.urls')), # no use

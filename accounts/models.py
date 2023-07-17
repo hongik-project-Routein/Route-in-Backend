@@ -8,36 +8,40 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, name, password, **kwargs):
-        if not name:
-            raise ValueError('must have user name')
+    def create_user(self, email, password, **extra_fields):
+        if not email: # email 없을 시 error
+            raise ValueError('must have user email')
+
+        email = self.normalize_email(email)
         user = self.model(
-            name=name,
+            email=email,
+            **extra_fields
         )
         user.set_password(password)
-        user.save(using=self._db)
+        user.save()
         return user
 
-    def create_superuser(self, name, password, **extra_fields):
+    def create_superuser(self, email, password, **extra_fields):
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
         superuser = self.create_user(
-            name=name,
+            email=email,
             password=password,
+            **extra_fields
         )
-        superuser.is_superuser = True
-        superuser.save(using=self._db)
+        superuser.save()
         return superuser
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    username_validator = UnicodeUsernameValidator()
-
-    name = models.CharField('NAME', max_length=20, unique=True)
-    email = models.EmailField('EMAIL', max_length=40, null=True, blank=True)
+    name = models.CharField('NAME', max_length=20)
+    email = models.EmailField('EMAIL', max_length=40, unique=True)
     age = models.IntegerField('AGE', null=True, blank=True)
-
     GENDER_CHOICES = ( ('M', 'Male'), ('F', 'Female') )
     gender = models.CharField('GENDER', max_length=1, choices=GENDER_CHOICES)
-
     def upload_to_func(instance, filename):
         prefix = timezone.now().strftime("%Y/%m/%d")
         file_name = uuid4().hex
@@ -47,15 +51,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         )
     image = models.ImageField('IMAGE', upload_to=upload_to_func, blank=True)
 
-    follower_set = models.ManyToManyField('self', blank=True)
-    following_set = models.ManyToManyField('self', blank=True)
-
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
     joined_at = models.DateTimeField(auto_now_add=True)
 
+    follower_set = models.ManyToManyField('self', blank=True)
+    following_set = models.ManyToManyField('self', blank=True)
+
     objects = UserManager()
-    USERNAME_FIELD = 'name'
+    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     def __str__(self):
