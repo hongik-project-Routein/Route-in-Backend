@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from socialmedia.models import Post, Pin, Comment, Story, Hashtag
+from socialmedia.models import Post, Pin, Comment, Hashtag
 from accounts.models import User
 from decimal import Decimal
 
@@ -20,14 +20,22 @@ class UserImageSerializer(serializers.ModelSerializer):
         model = User
         fields = ['image']
 
-# Post Serializer
+
+# Post 목록 Serializer
+# called by: PostRetrieveSerializer
 class PostSerializer(serializers.ModelSerializer):
     writer = serializers.ReadOnlyField(source='writer.name')
     like_users = serializers.StringRelatedField(many=True)
     bookmark_users = serializers.StringRelatedField(many=True)
+    tagged_users = serializers.StringRelatedField(many=True)
+    is_liked = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
     pin_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
+
+    def get_is_liked(self, obj):
+        cur_user = self.context.get('request').user
+        return obj.like_users.filter(id=cur_user.id).exists()
 
     def get_like_count(self, obj):
         return obj.like_users.count()
@@ -40,7 +48,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'writer', 'content', 'pin_count', 'like_count', 'report_count', 'like_users', 'bookmark_users', 'comment_count']
+        fields = ['id', 'writer', 'content', 'is_liked', 'pin_count', 'like_count', 'report_count', 'like_users', 'bookmark_users', 'tagged_users', 'comment_count']
 
 
 # Post Like Serializer
@@ -63,6 +71,7 @@ class PostBookmarkSerializer(serializers.ModelSerializer):
 
 
 # Pin Detail Serializer
+# called by: PostRetreieveSerializer
 class PinDetailSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(max_length=None, allow_empty_file=True, use_url=True)
 
@@ -103,24 +112,24 @@ class PostCreateSerializer(serializers.ModelSerializer):
 
 
 # Comment Serializer
+# called by: PostCommentListView, PostRetrieveSerializer
 class CommentSerializer(serializers.ModelSerializer):
+    writer_image = serializers.ImageField(source='writer.image', required=False)
     writer = serializers.ReadOnlyField(source='writer.name')
     like_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
+    tagged_users = serializers.StringRelatedField(many=True)
 
     def get_like_count(self, obj):
         return obj.like_users.count()
 
+    def get_is_liked(self, obj):
+        cur_user = self.context.get('request').user
+        return obj.like_users.filter(id=cur_user.id).exists()
+
     class Meta:
         model = Comment
-        fields = ['id', 'updated_at', 'post', 'writer', 'content', 'like_count']
-
-
-# Story Serializer
-class StorySerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Story
-        fields = '__all__'
+        fields = ['id', 'writer_image', 'writer', 'content', 'tagged_users', 'updated_at', 'post', 'like_count', 'is_liked']
 
 
 # Hashtag Serializer
@@ -131,8 +140,18 @@ class HashtagSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 
-# Post Retrieve Serializer
+# Post 상세 Serializer
+# called by: PostRetrieveAPIView
 class PostRetrieveSerializer(serializers.Serializer):
+    post = PostSerializer()
+    pin = PinDetailSerializer(many=True)
+    user = UserImageSerializer()
+    comment = CommentSerializer(many=True)
+
+
+# Post 목록 Serializer
+# called by: PostListAPIView
+class PostListSerializer(serializers.Serializer):
     post = PostSerializer()
     pin = PinDetailSerializer(many=True)
     user = UserImageSerializer()

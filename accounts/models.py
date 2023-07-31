@@ -49,7 +49,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return "/".join(
             [prefix, file_name, extension, ]
         )
-    image = models.ImageField('IMAGE', upload_to=upload_to_func, blank=True)
+    image = models.ImageField('IMAGE', upload_to=upload_to_func, null=True, blank=True)
 
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
@@ -63,7 +63,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     def __str__(self):
-        return self.name
+        return self.email
 
     def has_perm(self, perm, obj=None):
         return True

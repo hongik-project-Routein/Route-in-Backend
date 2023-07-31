@@ -156,8 +156,7 @@ def kakao_callback(request):
     profile_json = profile_request.json()
     kakao_account = profile_json.get('kakao_account')
     """
-    kakao_account에서 이메일 외에
-    카카오톡 프로필 이미지, 배경 이미지 url 가져올 수 있음
+    kakao_account에서 이메일 외에 카카오톡 프로필 이미지, 배경 이미지 url 가져올 수 있음
     """
     email = kakao_account.get('email')
     """
@@ -194,6 +193,7 @@ def kakao_callback(request):
         accept_json = accept.json()
         accept_json.pop('user', None)
         return JsonResponse(accept_json)
+
 
 class KakaoLogin(SocialLoginView):
     adapter_class = kakao_view.KakaoOAuth2Adapter

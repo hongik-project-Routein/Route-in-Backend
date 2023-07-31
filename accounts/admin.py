@@ -9,12 +9,12 @@ class CustomUserAdmin(UserAdmin):
     add_form = UserCreationForm
     form = UserChangeForm
 
-    list_display = ('email', 'age', 'gender', 'joined_at',)
+    list_display = ('email', 'name', 'age', 'gender', 'joined_at',)
     list_filter = ('is_superuser',)
 
     fieldsets = (
         (None, {'fields': ('email', 'password',)}),
-        ('Personal info', {'fields': ('age', 'gender', 'image')}),
+        ('Personal info', {'fields': ('name', 'age', 'gender', 'image')}),
         ('Permissions', {'fields': ('is_superuser',)}),
     )
 

@@ -121,13 +121,14 @@ WSGI_APPLICATION = 'Route_in.wsgi.application'
 # DRF
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        # API 접근 시 헤더에 access token을 포함하여 유효한 유저만 접근 가능(Authenticated)
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        # 'rest_framework.authentication.SessionAuthentication',
-        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+
+        # 'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
    ],
 
 }

@@ -6,10 +6,10 @@ from accounts.models import User
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404, ListAPIView, \
     RetrieveAPIView, RetrieveDestroyAPIView, CreateAPIView
 from rest_framework.response import Response
-from .serializers import PostSerializer, PostLikeSerializer, PinDetailSerializer, CommentSerializer, StorySerializer, \
+from .serializers import PostSerializer, PostLikeSerializer, PinDetailSerializer, CommentSerializer, \
     HashtagSerializer, PostBookmarkSerializer, UserSerializer, PostRetrieveSerializer, \
-    PinSerializer, PostCreateSerializer, UserImageSerializer
-from socialmedia.models import Post, Pin, Comment, Story, Hashtag
+    PinSerializer, PostCreateSerializer, UserImageSerializer, PostListSerializer
+from socialmedia.models import Post, Pin, Comment, Hashtag
 
 
 # User List
@@ -24,10 +24,10 @@ class UserRetrieveAPIView(RetrieveAPIView):
     serializer_class = UserSerializer
 
 
-# Post List
+# Post List (실제 사용)
 class PostListAPIView(ListAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostSerializer
+    serializer_class = PostListSerializer
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -36,14 +36,18 @@ class PostListAPIView(ListAPIView):
 
         for item in data:
             post_id = item['id']
-            item['pin'] = PinDetailSerializer(Pin.objects.filter(post_id=post_id), many=True).data
+
+            item['pin1'] = PinDetailSerializer(Pin.objects.filter(post_id=post_id), many=True).data
+            item['pin2'] = Pin.objects.filter(post_id=post_id).values('image', 'latitude', 'longitude')
             item['user'] = UserImageSerializer(User.objects.filter(name=item['writer']), many=True).data
             item['comment'] = Comment.objects.filter(post_id=post_id).values('id', 'updated_at', 'post', 'writer', 'content')
 
         return Response(data)
 
-
-# Post Create
+'''
+새로운 게시글 생성(POST)
+api/post/create/
+'''
 class PostCreateAPIView(CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(writer=self.request.user)
@@ -59,10 +63,11 @@ class PostCreateAPIView(CreateAPIView):
     serializer_class = PostCreateSerializer
 
 
-# Post Like
+'''
+특정 게시글 좋아요(POST, GET)
+api/post/<int:pk>/like/
+'''
 class PostLikeAPIView(APIView):
-    permission_classes = [rest_framework.permissions.AllowAny]
-
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
         serializer = PostLikeSerializer(post)
@@ -76,17 +81,20 @@ class PostLikeAPIView(APIView):
             # 이미 좋아요한 경우
             post.like_users.remove(user)
             post.save()
-            return Response(post.like_users.all().count(), status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_200_OK)
         else:
             post.like_users.add(user)
             post.save()
-            return Response(post.like_users.all().count(), status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_200_OK)
 
     queryset = Post.objects.all()
     serializer_class = PostLikeSerializer
 
 
-# Post Bookmark
+'''
+특정 게시글 북마크(POST, GET)
+api/post/<int:pk>/bookmark/
+'''
 class PostBookmarkAPIView(APIView):
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
@@ -98,7 +106,7 @@ class PostBookmarkAPIView(APIView):
         user = request.user
 
         if user in post.bookmark_users.all():
-            # 이미 좋아요한 경우
+            # 이미 북마크한 경우
             post.bookmark_users.remove(user)
             post.save()
             return Response(status=status.HTTP_200_OK)
@@ -111,13 +119,16 @@ class PostBookmarkAPIView(APIView):
     serializer_class = PostBookmarkSerializer
 
 
-# Post Comment List
+'''
+특정 게시글 댓글 목록(GET) 및 새로운 댓글 생성(POST)
+api/post/<int:pk>/comment/
+'''
 class PostCommentListAPIView(ListCreateAPIView):
 
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
         comments = post.comments.all()
-        serializer = CommentSerializer(comments, many=True)
+        serializer = CommentSerializer(comments, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
@@ -145,7 +156,10 @@ class PinRetrieveAPIView(RetrieveAPIView):
     serializer_class = PinDetailSerializer
 
 
-# Comment List
+'''
+전체 댓글 목록(GET) 및 새로운 댓글 생성(POST)
+api/comment/
+'''
 class CommentListAPIView(ListCreateAPIView):
 
     def post(self, request, pk):
@@ -156,18 +170,6 @@ class CommentListAPIView(ListCreateAPIView):
 
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-
-
-# Story List + Create
-class StoryListAPIView(ListCreateAPIView):
-    queryset = Story.objects.all()
-    serializer_class = StorySerializer
-
-
-# Story Retrieve + Destroy
-class StoryRetrieveAPIView(RetrieveDestroyAPIView):
-    queryset = Story.objects.all()
-    serializer_class = StorySerializer
 
 
 # Hashtag List + Create
@@ -182,8 +184,14 @@ class HashtagRetrieveAPIView(RetrieveDestroyAPIView):
     serializer_class = HashtagSerializer
 
 
-# Post Retrieve + Update + Destroy
+'''
+특정 게시글 상세(GET, PUT, DELETE)
+api/post/<int:pk>/
+'''
 class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostRetrieveSerializer
+
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         pin = instance.pins.all()
@@ -198,5 +206,11 @@ class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance=data)
         return Response(serializer.data)
 
-    queryset = Post.objects.all()
-    serializer_class = PostRetrieveSerializer
+
+'''
+특정 댓글 상세(GET, PUT, DELETE)
+api/comment/<int:pk>/
+'''
+class CommentRetrieveAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
