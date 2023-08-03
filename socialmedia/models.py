@@ -50,12 +50,8 @@ class Post(BaseModel):
     tagged_users = models.ManyToManyField(User, related_name='tagging_posts', blank=True)
     report_count = models.IntegerField('REPORT_COUNT', default=0)
 
-    @property
-    def short_content(self):
-        return '{}: {}'.format(self.writer, self.content[:10])
-
     def __str__(self):
-        return self.short_content
+        return f'{self.writer}: {self.content[:10]}' or ''
 
 
 # Pin
@@ -66,7 +62,7 @@ class Pin(MapInfoModel):
     content = models.TextField('SUB_CONTENT', max_length=200, blank=True, null=True)
 
     def __str__(self):
-        return self.content[:10]
+        return f'{self.post}) {self.content[:10]}' or ''
 
 
 # Comment
@@ -77,12 +73,8 @@ class Comment(BaseModel):
     like_users = models.ManyToManyField(User, related_name='like_comments', blank=True)
     tagged_users = models.ManyToManyField(User, related_name='tagging_comments', blank=True)
 
-    @property
-    def short_content(self):
-        return self.content[:10]
-
     def __str__(self):
-        return self.short_content
+        return f'{self.post}) {self.writer}: {self.content[:10]}' or ''
 
 
 # Hashtag
@@ -91,4 +83,5 @@ class Hashtag(models.Model):
     name = models.CharField('NAME', max_length=20, unique=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.post}) {self.name}' or ''
+
