@@ -59,16 +59,15 @@ class PostListAPIView(ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        data = serializer.data
 
-        for item in data:
-            post_id = item['id']
-
-            item['pin1'] = PinDetailSerializer(Pin.objects.filter(post_id=post_id), many=True).data
-            item['pin2'] = Pin.objects.filter(post_id=post_id).values('image', 'latitude', 'longitude')
-            item['user'] = UserImageSerializer(User.objects.filter(name=item['writer']), many=True).data
-            item['comment'] = Comment.objects.filter(post_id=post_id).values('id', 'updated_at', 'post', 'writer', 'content')
+        data = []
+        for post in queryset:
+            post_data = {}
+            post_data['post'] = PostSerializer(post).data
+            post_data['pin'] = PinDetailSerializer(post.pins.all(), many=True).data
+            post_data['user'] = UserImageSerializer(User.objects.filter(uname=post.writer), many=True).data
+            post_data['comment'] = CommentSerializer(post.comments.all(), many=True, context={'request': request}).data
+            data.append(post_data)
 
         return Response(data)
 
