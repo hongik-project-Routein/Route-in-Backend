@@ -1,14 +1,9 @@
-import rest_framework.permissions
 from rest_framework import status
-from rest_framework.parsers import MultiPartParser
 from rest_framework.views import APIView
-from accounts.models import User
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404, ListAPIView, \
-    RetrieveAPIView, RetrieveDestroyAPIView, CreateAPIView
+    RetrieveAPIView, RetrieveDestroyAPIView, CreateAPIView, GenericAPIView
 from rest_framework.response import Response
-from .serializers import PostSerializer, PostLikeSerializer, PinDetailSerializer, CommentSerializer, \
-    HashtagSerializer, PostBookmarkSerializer, UserSerializer, PostRetrieveSerializer, \
-    PinSerializer, PostCreateSerializer, UserImageSerializer, PostListSerializer
+from .serializers import *
 from socialmedia.models import Post, Pin, Comment, Hashtag
 
 
@@ -17,14 +12,47 @@ class UserListAPIView(ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-
-# User Retrieve
+'''
+특정 유저 상세(GET): 구현
+api/user/<int:pk>/
+'''
 class UserRetrieveAPIView(RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
 
-# Post List (실제 사용)
+'''
+특정 사용자 팔로우(POST): 구현
+api/user/<int:pk>/follow/
+'''
+class UserFollowAPIView(APIView):
+    def post(self, request, pk):
+        target_user = get_object_or_404(User, pk=pk)
+        user = request.user
+
+        # 자기 자신을 팔로우하는 경우
+        if user == target_user:
+            return Response('팔로우 실패: 자기 자신을 팔로우 할 수 없음', status.HTTP_200_OK)
+
+        if user in target_user.follower_set.all():
+            # 이미 팔로우한 경우
+            target_user.follower_set.remove(user)
+            target_user.save()
+            return Response('팔로우 취소', status=status.HTTP_200_OK)
+        else:
+            target_user.follower_set.add(user)
+            target_user.save()
+            return Response('팔로우 성공', status=status.HTTP_200_OK)
+
+
+    queryset = User.objects.all()
+    serializer_class = UserFollowSerializer
+
+
+'''
+전체 게시글 목록(GET): 구현 중
+api/post/
+'''
 class PostListAPIView(ListAPIView):
     queryset = Post.objects.all()
     serializer_class = PostListSerializer
@@ -43,6 +71,7 @@ class PostListAPIView(ListAPIView):
             item['comment'] = Comment.objects.filter(post_id=post_id).values('id', 'updated_at', 'post', 'writer', 'content')
 
         return Response(data)
+
 
 '''
 새로운 게시글 생성(POST)
@@ -64,6 +93,29 @@ class PostCreateAPIView(CreateAPIView):
 
 
 '''
+특정 게시글 상세(GET, PUT, DELETE)
+api/post/<int:pk>/
+'''
+class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostRetrieveSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        pin = instance.pins.all()
+        user = instance.writer
+        comment = instance.comments.all()
+        data = {
+            'post': instance,
+            'pin': pin,
+            'user': user,
+            'comment': comment,
+        }
+        serializer = self.get_serializer(instance=data)
+        return Response(serializer.data)
+
+
+'''
 특정 게시글 좋아요(POST, GET)
 api/post/<int:pk>/like/
 '''
@@ -81,11 +133,11 @@ class PostLikeAPIView(APIView):
             # 이미 좋아요한 경우
             post.like_users.remove(user)
             post.save()
-            return Response(status=status.HTTP_200_OK)
+            return Response('좋아요 취소', status=status.HTTP_200_OK)
         else:
             post.like_users.add(user)
             post.save()
-            return Response(status=status.HTTP_200_OK)
+            return Response('좋아요 성공', status=status.HTTP_200_OK)
 
     queryset = Post.objects.all()
     serializer_class = PostLikeSerializer
@@ -109,11 +161,11 @@ class PostBookmarkAPIView(APIView):
             # 이미 북마크한 경우
             post.bookmark_users.remove(user)
             post.save()
-            return Response(status=status.HTTP_200_OK)
+            return Response('북마크 취소', status=status.HTTP_200_OK)
         else:
             post.bookmark_users.add(user)
             post.save()
-            return Response(status=status.HTTP_200_OK)
+            return Response('북마크 성공', status=status.HTTP_200_OK)
 
     queryset = Post.objects.all()
     serializer_class = PostBookmarkSerializer
@@ -136,6 +188,46 @@ class PostCommentListAPIView(ListCreateAPIView):
 
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+
+
+'''
+특정 게시글 태그된 사용자 목록(GET)
+api/post/<int:pk>/tag/
+'''
+class PostTagListAPIView(APIView):
+    def get(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        serializer = PostTagSerializer(post)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    queryset = Post.objects.all()
+    serializer_class = PostTagSerializer
+
+
+'''
+특정 게시글 사용자 태그(POST)
+api/post/<int:pk>/tag/<int:user_id>
+'''
+class PostTagAPIView(APIView):
+    def post(self, request, pk, user_id):
+        post = get_object_or_404(Post, pk=pk)
+        try:
+            user = User.objects.get(id=user_id)
+        except:
+            return Response('태그 실패: 해당 유저를 찾을 수 없음', status=status.HTTP_404_NOT_FOUND)
+
+        if user in post.tagged_users.all():
+            # 이미 태그한 경우
+            post.tagged_users.remove(user)
+            post.save()
+            return Response(f'태그 취소 {user}', status=status.HTTP_200_OK)
+        else:
+            post.tagged_users.add(user)
+            post.save()
+            return Response(f'태그 성공: {user}', status=status.HTTP_200_OK)
+
+    queryset = Post.objects.all()
+    serializer_class = PostTagSerializer
 
 
 # Pin List + Create
@@ -172,6 +264,83 @@ class CommentListAPIView(ListCreateAPIView):
     serializer_class = CommentSerializer
 
 
+'''
+특정 댓글 상세(GET, PUT, DELETE)
+api/comment/<int:pk>/
+'''
+class CommentRetrieveAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+
+'''
+특정 댓글 좋아요(POST, GET)
+api/comment/<int:pk>/like/
+'''
+class CommentLikeAPIView(APIView):
+    def get(self, request, pk):
+        comment = get_object_or_404(Comment, pk=pk)
+        serializer = CommentLikeSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, pk):
+        comment = get_object_or_404(Comment, pk=pk)
+        user = request.user
+
+        if user in comment.like_users.all():
+            # 이미 좋아요한 경우
+            comment.like_users.remove(user)
+            comment.save()
+            return Response('좋아요 취소', status=status.HTTP_200_OK)
+        else:
+            comment.like_users.add(user)
+            comment.save()
+            return Response('좋아요 성공', status=status.HTTP_200_OK)
+
+    queryset = Comment.objects.all()
+    serializer_class = CommentLikeSerializer
+
+
+'''
+특정 댓글 태그된 사용자 목록(GET)
+api/comment/<int:pk>/tag/
+'''
+class CommentTagListAPIView(APIView):
+    def get(self, request, pk):
+        comment = get_object_or_404(Comment, pk=pk)
+        serializer = CommentTagSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    queryset = Comment.objects.all()
+    serializer_class = CommentTagSerializer
+
+
+'''
+특정 댓글 사용자 태그(POST)
+api/comment/<int:pk>/tag/<int:user_id>
+'''
+class CommentTagAPIView(APIView):
+    def post(self, request, pk, user_id):
+        comment = get_object_or_404(Comment, pk=pk)
+        try:
+            user = User.objects.get(id=user_id)
+        except:
+            return Response('태그 실패: 해당 유저를 찾을 수 없음', status=status.HTTP_404_NOT_FOUND)
+
+        if user in comment.tagged_users.all():
+            # 이미 태그한 경우
+            comment.tagged_users.remove(user)
+            comment.save()
+            return Response(f'태그 취소 {user}', status=status.HTTP_200_OK)
+        else:
+            comment.tagged_users.add(user)
+            comment.save()
+            return Response(f'태그 성공: {user}', status=status.HTTP_200_OK)
+
+    queryset = Comment.objects.all()
+    serializer_class = CommentTagSerializer
+
+
 # Hashtag List + Create
 class HashtagListAPIView(ListCreateAPIView):
     queryset = Hashtag.objects.all()
@@ -182,35 +351,3 @@ class HashtagListAPIView(ListCreateAPIView):
 class HashtagRetrieveAPIView(RetrieveDestroyAPIView):
     queryset = Hashtag.objects.all()
     serializer_class = HashtagSerializer
-
-
-'''
-특정 게시글 상세(GET, PUT, DELETE)
-api/post/<int:pk>/
-'''
-class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostRetrieveSerializer
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        pin = instance.pins.all()
-        user = instance.writer
-        comment = instance.comments.all()
-        data = {
-            'post': instance,
-            'pin': pin,
-            'user': user,
-            'comment': comment,
-        }
-        serializer = self.get_serializer(instance=data)
-        return Response(serializer.data)
-
-
-'''
-특정 댓글 상세(GET, PUT, DELETE)
-api/comment/<int:pk>/
-'''
-class CommentRetrieveAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
