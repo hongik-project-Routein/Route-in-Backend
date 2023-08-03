@@ -1,4 +1,3 @@
-from django.shortcuts import redirect
 from accounts.models import User
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
@@ -17,29 +16,8 @@ BASE_URL = 'http://localhost:8000/'
 GOOGLE_CALLBACK_URI = BASE_URL + 'accounts/google/callback/'
 
 
-# def google_login(request):
-#     """
-#     Code Request
-#     """
-#     scope = "https://www.googleapis.com/auth/userinfo.email"
-#     client_id = getattr(settings, "SOCIAL_AUTH_GOOGLE_CLIENT_ID")
-#     return redirect(f"https://accounts.google.com/o/oauth2/v2/auth?client_id={client_id}&response_type=code&redirect_uri={GOOGLE_CALLBACK_URI}&scope={scope}")
-
-
 def google_callback(request):
-    client_id = getattr(settings, "SOCIAL_AUTH_GOOGLE_CLIENT_ID")
-    client_secret = getattr(settings, "SOCIAL_AUTH_GOOGLE_SECRET")
-    code = request.GET.get('code')
-    """
-    Access Token Request
-    """
-    token_req = requests.post(
-        f"https://oauth2.googleapis.com/token?client_id={client_id}&client_secret={client_secret}&code={code}&grant_type=authorization_code&redirect_uri={GOOGLE_CALLBACK_URI}&state={state}")
-    token_req_json = token_req.json()
-    error = token_req_json.get("error")
-    if error is not None:
-        raise JSONDecodeError(error)
-    access_token = token_req_json.get('access_token')
+    access_token = request.headers.get('Authorization')[7:]
     """
     Email Request
     """
@@ -79,11 +57,13 @@ def google_callback(request):
         data = {'access_token': access_token}
         accept = requests.post(
             f"{BASE_URL}accounts/google/login/finish/", data=data)
+
         accept_status = accept.status_code
         if accept_status != 200:
             return JsonResponse({'err_msg': 'failed to signup'}, status=accept_status)
         accept_json = accept.json()
         accept_json.pop('user', None)
+
         return JsonResponse(accept_json)
 
 
@@ -93,32 +73,11 @@ class GoogleLogin(SocialLoginView):
     client_class = OAuth2Client
 
 
-
-
 KAKAO_CALLBACK_URI = getattr(settings, 'KAKAO_REDIRECT_URI')
 
 
-def kakao_login(request):
-    rest_api_key = getattr(settings, 'KAKAO_REST_API_KEY')
-    return redirect(
-        f"https://kauth.kakao.com/oauth/authorize?client_id={rest_api_key}&redirect_uri={KAKAO_CALLBACK_URI}&response_type=code"
-    )
-
-
 def kakao_callback(request):
-    rest_api_key = getattr(settings, 'KAKAO_REST_API_KEY')
-    code = request.GET.get("code")
-    redirect_uri = KAKAO_CALLBACK_URI
-    """
-    Access Token Request
-    """
-    token_req = requests.get(
-        f"https://kauth.kakao.com/oauth/token?grant_type=authorization_code&client_id={rest_api_key}&redirect_uri={redirect_uri}&code={code}")
-    token_req_json = token_req.json()
-    error = token_req_json.get("error")
-    if error is not None:
-        raise JSONDecodeError(error)
-    access_token = token_req_json.get("access_token")
+    access_token = request.headers.get('Authorization')[7:]
     """
     Email Request
     """

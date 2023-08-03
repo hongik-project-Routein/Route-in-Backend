@@ -95,9 +95,9 @@ ROOT_URLCONF = 'Route_in.urls'
 
 CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:3000', 'http://localhost:3000']
 CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOW_HEADERS = list(default_headers) + ['X-CSRFTOKEN']
 CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
-
 
 TEMPLATES = [
     {
@@ -130,7 +130,6 @@ REST_FRAMEWORK = {
 
         # 'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
    ],
-
 }
 
 

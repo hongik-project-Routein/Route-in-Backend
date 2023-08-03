@@ -148,6 +148,7 @@ class PostCreateSerializer(serializers.ModelSerializer):
             image_data = pdata.pop('image')
             lat_data = pdata.pop('latitude')
             lng_data = pdata.pop('longitude')
+
             pin = Pin.objects.create(post=post, image=image_data, latitude=Decimal(lat_data), longitude=Decimal(lng_data), **pdata)
             pin.image.save(image_data.name, image_data, save=True)
 
