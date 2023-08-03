@@ -1,7 +1,7 @@
 import os
 from uuid import uuid4
 from django.db import models
-from account.models import User
+from accounts.models import User
 from django.utils import timezone
 
 
@@ -47,7 +47,7 @@ class Post(BaseModel):
     content = models.TextField('CONTENT', max_length=200, blank=True)
     like_users = models.ManyToManyField(User, related_name='like_posts', blank=True)
     bookmark_users = models.ManyToManyField(User, related_name='bookmark_posts', blank=True)
-    # tagged_users = models.ManyToManyField(User, related_name='like_posts', blank=True)
+    tagged_users = models.ManyToManyField(User, related_name='tagging_posts', blank=True)
     report_count = models.IntegerField('REPORT_COUNT', default=0)
 
     @property
@@ -75,7 +75,7 @@ class Comment(BaseModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     content = models.TextField('CONTENT', max_length=200)
     like_users = models.ManyToManyField(User, related_name='like_comments', blank=True)
-    # tagged_users = models.ManyToManyField('TAGGED_USERS', )
+    tagged_users = models.ManyToManyField(User, related_name='tagging_comments', blank=True)
 
     @property
     def short_content(self):
@@ -83,15 +83,6 @@ class Comment(BaseModel):
 
     def __str__(self):
         return self.short_content
-
-
-# Story
-class Story(BaseModel, MapInfoModel):
-    writer = models.ForeignKey(User, on_delete=models.CASCADE, )
-    image = models.ImageField('IMAGE', upload_to=upload_to_func)
-    # like_users = models.ManyToManyField('LIKE_USERS', )
-    # tagged_users = models.ManyToManyField('TAGGED_USERS', )
-    report_count = models.IntegerField('REPORT_COUNT', default=0)
 
 
 # Hashtag

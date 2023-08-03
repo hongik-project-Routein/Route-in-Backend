@@ -1,23 +1,30 @@
 import os
 from pathlib import Path
-
-import secretKeys
+import json
+import sys
 from corsheaders.defaults import default_headers
+from datetime import timedelta
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = secretKeys.SECRET_KEY
+ROOT_DIR = os.path.dirname(BASE_DIR)
+SECRET_BASE_FILE = os.path.join(BASE_DIR, 'secrets.json')
 
-# SECURITY WARNING: don't run with debug turned on in production!
+secrets = json.loads(open(SECRET_BASE_FILE).read())
+for key, value in secrets.items():
+    setattr(sys.modules[__name__], key, value)
+
+SECRET_KEY = secrets["SECRET_KEY"]
+
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
 
-##################################
-AUTH_USER_MODEL = 'account.User'
-##################################
+#################################
+ALLOWED_HOSTS = ['*']
+AUTH_USER_MODEL = 'accounts.User'
+SITE_ID = 1
+#################################
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -28,17 +35,49 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
-    # apps
+    # my apps
     'api.apps.ApiConfig',
     'socialmedia.apps.SocialmediaConfig',
-    'account.apps.AccountConfig',
+    'accounts.apps.AccountsConfig',
 
     # DRF
     'rest_framework',
+    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
     'corsheaders',
 
+    # django-allauth
+    'allauth',  # 0.51.0
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.kakao',
+    'allauth.socialaccount.providers.google',
 ]
+
+
+# JWT settings
+REST_USE_JWT = True
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+}
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',     # CORS 관련 추가
@@ -54,11 +93,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'Route_in.urls'
 
-CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:3000'
-                         ,'http://localhost:3000']
+CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:3000', 'http://localhost:3000']
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOW_HEADERS = list(default_headers) + ['X-CSRFToken']
+CORS_ALLOW_HEADERS = list(default_headers) + ['X-CSRFTOKEN']
 CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
 TEMPLATES = [
@@ -79,23 +117,31 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Route_in.wsgi.application'
 
+
 # DRF
 REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-       'rest_framework.authentication.BasicAuthentication',
-   ),
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+        'rest_framework.permissions.IsAuthenticated',
     ],
-    'DEFAULT_PARSER_CLASSES': [
-        'rest_framework.parsers.MultiPartParser',
-    ]
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+
+        # 'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+   ],
 }
 
+
+REST_AUTH = {
+    'USE_JWT': True,
+    'SESSION_LOGIN': False,
+    'JWT_AUTH_HTTPONLY': False,
+}
+
+
 # Database
-DATABASES = secretKeys.DATABASES
+DATABASES = secrets["DATABASES"]
 
 
 # Password validation
@@ -121,9 +167,8 @@ TIME_ZONE = 'Asia/Seoul'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = False
-
 BASE_COUNTRY = 'KR'
-GOOGLE_API_KEY = secretKeys.GOOGLE_API_KEY
+
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
