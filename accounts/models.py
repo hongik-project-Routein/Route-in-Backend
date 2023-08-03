@@ -39,7 +39,7 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField('NAME', max_length=20)
     uname = models.CharField('UNAME', max_length=20, blank=True, null=True)
-    email = models.EmailField('EMAIL', max_length=40)
+    email = models.EmailField('EMAIL', max_length=40, unique=True)
     age = models.IntegerField('AGE', null=True, blank=True)
     GENDER_CHOICES = ( ('M', 'Male'), ('F', 'Female') )
     gender = models.CharField('GENDER', max_length=1, choices=GENDER_CHOICES)
@@ -59,7 +59,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     following_set = models.ManyToManyField('self', symmetrical=False, related_name='follower_set', blank=True)
 
     objects = UserManager()
-    USERNAME_FIELD = 'id'
+    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     def __str__(self):
