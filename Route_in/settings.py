@@ -126,6 +126,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+
+        # for local testing
         'rest_framework.authentication.SessionAuthentication',
 
         # 'dj_rest_auth.jwt_auth.JWTCookieAuthentication',

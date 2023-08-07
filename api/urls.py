@@ -3,20 +3,21 @@ from api import views
 
 app_name = 'api'
 urlpatterns = [
+    # 자신의 프로필: 미구현
+    # path('profile/', views.ProfileAPIView.as_view(), name='profile'),
+
     # 전체 유저 목록: 구현
     path('user/', views.UserListAPIView.as_view(), name='user-list'),
     # 특정 유저 상세: 구현
     path('user/<int:pk>/', views.UserRetrieveAPIView.as_view(), name='user-retrieve'),
-    # 특정 사용자 팔로우(POST): 구현
+    # 특정 사용자 팔로우(POST, GET): 구현
     path('user/<int:pk>/follow/', views.UserFollowAPIView.as_view(), name='user-follow'),
 
-    # 전체 게시글 목록: 구현 중
+    # 전체 게시글 목록(GET): 구현
     path('post/', views.PostListAPIView.as_view(), name='post-list'),
-    # 새로운 게시글 생성(POST): 구현 및 연결
-    path('post/create/', views.PostCreateAPIView.as_view(), name='post-create'),
     # 특정 게시글 상세(GET, PUT, DELETE): 구현 및 연결
     path('post/<int:pk>/', views.PostRetrieveAPIView.as_view(), name='post-retrieve'),
-    # 특정 게시글 좋아요(POST, GET): 구현
+    # 특정 게시글 좋아요(POST, GET): 구현 및 연결
     path('post/<int:pk>/like/', views.PostLikeAPIView.as_view(), name='post-like'),
     # 특정 게시글 북마크(POST, GET): 구현
     path('post/<int:pk>/bookmark/', views.PostBookmarkAPIView.as_view(), name='post-bookmark'),
@@ -26,6 +27,8 @@ urlpatterns = [
     path('post/<int:pk>/tag/', views.PostTagListAPIView.as_view(), name='post-tag-list'),
     # 특정 게시글 사용자 태그(POST): 구현
     path('post/<int:pk>/tag/<int:user_id>/', views.PostTagAPIView.as_view(), name='post-tag'),
+    # 새로운 게시글 생성(POST): 구현 및 연결
+    path('post/create/', views.PostCreateAPIView.as_view(), name='post-create'),
 
     # 전체 핀 목록: 미구현
     path('pin/', views.PinListAPIView.as_view(), name='pin-list'),
@@ -48,7 +51,4 @@ urlpatterns = [
     path('hashtag/', views.HashtagListAPIView.as_view(), name='hashtag-list'),
     # 특정 해시태그 상세: 미구현
     path('hashtag/<int:pk>/', views.HashtagRetrieveAPIView.as_view(), name='hashtag-retrieve'),
-
-    # 자신의 프로필: 미구현
-    # path('profile/', views.ProfileAPIView.as_view(), name='profile'),
 ]

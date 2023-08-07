@@ -41,7 +41,7 @@ class UserFollowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['follow_count',]
+        fields = ['follow_count', ]
 
 '''
 called by:
@@ -53,6 +53,7 @@ class PostSerializer(serializers.ModelSerializer):
     bookmark_users = serializers.StringRelatedField(many=True)
     tagged_users = serializers.StringRelatedField(many=True)
     is_liked = serializers.SerializerMethodField()
+    is_bookmarked = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
     pin_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
@@ -60,6 +61,10 @@ class PostSerializer(serializers.ModelSerializer):
     def get_is_liked(self, obj):
         cur_user = self.context.get('request').user
         return obj.like_users.filter(id=cur_user.id).exists()
+
+    def get_is_bookmarked(self, obj):
+        cur_user = self.context.get('request').user
+        return obj.bookmark_users.filter(id=cur_user.id).exists()
 
     def get_like_count(self, obj):
         return obj.like_users.count()
@@ -72,7 +77,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'writer', 'content', 'is_liked', 'pin_count', 'like_count', 'report_count', 'like_users', 'bookmark_users', 'tagged_users', 'comment_count']
+        fields = ['id', 'writer', 'content', 'is_liked', 'is_bookmarked', 'pin_count', 'like_count', 'report_count', 'like_users', 'bookmark_users', 'tagged_users', 'comment_count']
 
 
 '''

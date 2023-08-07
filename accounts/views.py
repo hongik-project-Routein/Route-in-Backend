@@ -17,7 +17,12 @@ GOOGLE_CALLBACK_URI = BASE_URL + 'accounts/google/callback/'
 
 
 def google_callback(request):
+    """
+    Get Access Token From Frontend
+    """
+    # 'Bearer: ' 슬라이싱
     access_token = request.headers.get('Authorization')[7:]
+
     """
     Email Request
     """
@@ -28,6 +33,7 @@ def google_callback(request):
         return JsonResponse({'err_msg': 'failed to get email'}, status=status.HTTP_400_BAD_REQUEST)
     email_req_json = email_req.json()
     email = email_req_json.get('email')
+
     """
     Signup or Signin Request
     """
@@ -77,7 +83,11 @@ KAKAO_CALLBACK_URI = getattr(settings, 'KAKAO_REDIRECT_URI')
 
 
 def kakao_callback(request):
+    """
+       Get Access Token From Frontend
+    """
     access_token = request.headers.get('Authorization')[7:]
+
     """
     Email Request
     """
@@ -89,6 +99,7 @@ def kakao_callback(request):
     kakao_account에서 이메일 외에 카카오톡 프로필 이미지, 배경 이미지 url 가져올 수 있음
     """
     email = kakao_account.get('email')
+
     """
     Signup or Signin Request
     """
