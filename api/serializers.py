@@ -51,10 +51,10 @@ class PostSerializer(serializers.ModelSerializer):
         return obj.bookmark_users.filter(id=cur_user.id).exists()
 
     def get_like_count(self, obj):
-        return obj.like_users.filter(is_deleted=False).count()
+        return obj.like_users.count()
 
     def get_pin_count(self, obj):
-        return obj.pins.filter(is_deleted=False).count()
+        return obj.pins.count()
 
     def get_comment_count(self, obj):
         return obj.comments.filter(is_deleted=False).count()
@@ -179,11 +179,11 @@ class CommentSerializer(serializers.ModelSerializer):
     tagged_users = serializers.StringRelatedField(many=True)
 
     def get_like_count(self, obj):
-        return obj.like_users.filter(is_deleted=False).count()
+        return obj.like_users.count()
 
     def get_is_liked(self, obj):
         cur_user = self.context.get('request').user
-        return obj.like_users.filter(id=cur_user.id).exists()
+        return obj.like_users.exists()
 
     class Meta:
         model = Comment
