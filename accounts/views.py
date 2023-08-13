@@ -37,7 +37,8 @@ def google_callback(request):
     """
     Signup or Signin Request
     """
-    try: # 기존에 가입된 유저의 Provider가 google이 아니면 에러 발생, 맞으면 로그인
+    try:  # 기존에 가입된 유저의 Provider가 google이 아니면 에러 발생, 맞으면 로그인
+        user = User.objects.get(email=email)
         user = User.objects.get(email=email)
         # # 다른 SNS로 가입된 유저
         # social_user = SocialAccount.objects.get(user=user)
@@ -47,8 +48,6 @@ def google_callback(request):
         # if social_user.provider != 'google':
         #     return JsonResponse({'err_msg': 'no matching social type'},
         #                         status=status.HTTP_400_BAD_REQUEST)
-
-        # 기존에 Google로 가입된 유저
         data = {'access_token': access_token}
         accept = requests.post(
             f"{BASE_URL}accounts/google/login/finish/", data=data)
@@ -57,65 +56,28 @@ def google_callback(request):
             return JsonResponse({'err_msg': 'failed to signin'}, status=accept_status)
         accept_json = accept.json()
 
-        # name, uname, image, email, age, gender, follower_set, following_set 포함
-        user = User.objects.get(email=email)
-        # user_info = {
-        #     'name': user.name,
-        #     'uname': user.uname,
-        #     'image': user.image if user.image else None,
-        #     'email': user.email,
-        #     'age': user.age,
-        #     'gender': user.gender,
-        #     'follower_set': user.follower_set,
-        #     'following_set': user.following_set,
-        # }
-        # accept_json['user_info'] = user_info
-        accept_json['name'] = user.name
-        accept_json['uname'] = user.uname
-        accept_json['image'] = user.image if user.image else None
-        accept_json['email'] = user.email
-        accept_json['age'] = user.age
-        accept_json['gender'] = user.gender
-        accept_json['follower_set'] = user.follower_set
-        accept_json['following_set'] = user.following_set
-
-        accept_json.pop('user', None)
-
-        return JsonResponse(accept_json)
-
     except:  # 기존에 가입된 유저가 없으면 새로 가입
         data = {'access_token': access_token}
         accept = requests.post(
             f"{BASE_URL}accounts/google/login/finish/", data=data)
-
         accept_status = accept.status_code
         if accept_status != 200:
             return JsonResponse({'err_msg': 'failed to signup'}, status=accept_status)
         accept_json = accept.json()
 
-        # name, uname, image, email, age, gender, follower_set, following_set 포함
-        user = User.objects.get(email=email)
-        # user_info = {
-        #     'name': user.name,
-        #     'uname': user.uname,
-        #     'image': user.image if user.image else None,
-        #     'email': user.email,
-        #     'age': user.age,
-        #     'gender': user.gender,
-        #     'follower_set': user.follower_set,
-        #     'following_set': user.following_set,
-        # }
-        # accept_json['user_info'] = user_info
-        accept_json['name'] = user.name
-        accept_json['uname'] = user.uname
-        accept_json['image'] = user.image if user.image else None
-        accept_json['email'] = user.email
-        accept_json['age'] = user.age
-        accept_json['gender'] = user.gender
-        accept_json['follower_set'] = user.follower_set
-        accept_json['following_set'] = user.following_set
+    user = User.objects.get(email=email)
+    accept_json['name'] = user.name
+    accept_json['uname'] = user.uname
+    accept_json['image'] = user.image.url if user.image else None
+    accept_json['email'] = user.email
+    accept_json['age'] = user.age
+    accept_json['gender'] = user.gender
+    accept_json['follower_set'] = list(user.follower_set.values_list('uname', flat=True))
+    accept_json['following_set'] = list(user.following_set.values_list('uname', flat=True))
 
-        return JsonResponse(accept_json)
+    accept_json.pop('user', None)
+
+    return JsonResponse(accept_json)
 
 
 class GoogleLogin(SocialLoginView):
@@ -181,7 +143,7 @@ def kakao_callback(request):
         # accept_json['user_info'] = user_info
         accept_json['name'] = user.name
         accept_json['uname'] = user.uname
-        accept_json['image'] = user.image if user.image else None
+        accept_json['image'] = user.image.url if user.image else None
         accept_json['email'] = user.email
         accept_json['age'] = user.age
         accept_json['gender'] = user.gender
@@ -218,7 +180,7 @@ def kakao_callback(request):
         # accept_json['user_info'] = user_info
         accept_json['name'] = user.name
         accept_json['uname'] = user.uname
-        accept_json['image'] = user.image if user.image else None
+        accept_json['image'] = user.image.url if user.image else None
         accept_json['email'] = user.email
         accept_json['age'] = user.age
         accept_json['gender'] = user.gender
