@@ -59,18 +59,26 @@ def google_callback(request):
 
         # name, uname, image, email, age, gender, follower_set, following_set 포함
         user = User.objects.get(email=email)
+        # user_info = {
+        #     'name': user.name,
+        #     'uname': user.uname,
+        #     'image': user.image if user.image else None,
+        #     'email': user.email,
+        #     'age': user.age,
+        #     'gender': user.gender,
+        #     'follower_set': user.follower_set,
+        #     'following_set': user.following_set,
+        # }
+        # accept_json['user_info'] = user_info
+        accept_json['name'] = user.name
+        accept_json['uname'] = user.uname
+        accept_json['image'] = user.image if user.image else None
+        accept_json['email'] = user.email
+        accept_json['age'] = user.age
+        accept_json['gender'] = user.gender
+        accept_json['follower_set'] = user.follower_set
+        accept_json['following_set'] = user.following_set
 
-        user_info = {
-            'name': user.name,
-            'uname': user.uname,
-            'image': user.image if user.image else None,
-            'email': user.email,
-            'age': user.age,
-            'gender': user.gender,
-            'follower_set': user.follower_set,
-            'following_set': user.following_set,
-        }
-        accept_json['user_info'] = user_info
         accept_json.pop('user', None)
 
         return JsonResponse(accept_json)
@@ -87,19 +95,25 @@ def google_callback(request):
 
         # name, uname, image, email, age, gender, follower_set, following_set 포함
         user = User.objects.get(email=email)
-
-        user_info = {
-            'name': user.name,
-            'uname': user.uname,
-            'image': user.image if user.image else None,
-            'email': user.email,
-            'age': user.age,
-            'gender': user.gender,
-            'follower_set': user.follower_set,
-            'following_set': user.following_set,
-        }
-        accept_json['user_info'] = user_info
-        accept_json.pop('user', None)
+        # user_info = {
+        #     'name': user.name,
+        #     'uname': user.uname,
+        #     'image': user.image if user.image else None,
+        #     'email': user.email,
+        #     'age': user.age,
+        #     'gender': user.gender,
+        #     'follower_set': user.follower_set,
+        #     'following_set': user.following_set,
+        # }
+        # accept_json['user_info'] = user_info
+        accept_json['name'] = user.name
+        accept_json['uname'] = user.uname
+        accept_json['image'] = user.image if user.image else None
+        accept_json['email'] = user.email
+        accept_json['age'] = user.age
+        accept_json['gender'] = user.gender
+        accept_json['follower_set'] = user.follower_set
+        accept_json['following_set'] = user.following_set
 
         return JsonResponse(accept_json)
 
@@ -154,18 +168,26 @@ def kakao_callback(request):
 
         # name, uname, image, email, age, gender, follower_set, following_set 포함
         user = User.objects.get(email=email)
+        # user_info = {
+        #     'name': user.name,
+        #     'uname': user.uname,
+        #     'image': user.image if user.image else None,
+        #     'email': user.email,
+        #     'age': user.age,
+        #     'gender': user.gender,
+        #     'follower_set': user.follower_set,
+        #     'following_set': user.following_set,
+        # }
+        # accept_json['user_info'] = user_info
+        accept_json['name'] = user.name
+        accept_json['uname'] = user.uname
+        accept_json['image'] = user.image if user.image else None
+        accept_json['email'] = user.email
+        accept_json['age'] = user.age
+        accept_json['gender'] = user.gender
+        accept_json['follower_set'] = user.follower_set
+        accept_json['following_set'] = user.following_set
 
-        user_info = {
-            'name': user.name,
-            'uname': user.uname,
-            'image': user.image if user.image else None,
-            'email': user.email,
-            'age': user.age,
-            'gender': user.gender,
-            'follower_set': user.follower_set,
-            'following_set': user.following_set,
-        }
-        accept_json['user_info'] = user_info
         accept_json.pop('user', None)
 
         return JsonResponse(accept_json)
@@ -183,19 +205,25 @@ def kakao_callback(request):
 
         # name, uname, image, email, age, gender, follower_set, following_set 포함
         user = User.objects.get(email=email)
-
-        user_info = {
-            'name': user.name,
-            'uname': user.uname,
-            'image': user.image if user.image else None,
-            'email': user.email,
-            'age': user.age,
-            'gender': user.gender,
-            'follower_set': user.follower_set,
-            'following_set': user.following_set,
-        }
-        accept_json['user_info'] = user_info
-        accept_json.pop('user', None)
+        # user_info = {
+        #     'name': user.name,
+        #     'uname': user.uname,
+        #     'image': user.image if user.image else None,
+        #     'email': user.email,
+        #     'age': user.age,
+        #     'gender': user.gender,
+        #     'follower_set': user.follower_set,
+        #     'following_set': user.following_set,
+        # }
+        # accept_json['user_info'] = user_info
+        accept_json['name'] = user.name
+        accept_json['uname'] = user.uname
+        accept_json['image'] = user.image if user.image else None
+        accept_json['email'] = user.email
+        accept_json['age'] = user.age
+        accept_json['gender'] = user.gender
+        accept_json['follower_set'] = user.follower_set
+        accept_json['following_set'] = user.following_set
 
         return JsonResponse(accept_json)
 
