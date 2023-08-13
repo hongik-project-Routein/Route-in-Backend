@@ -66,9 +66,9 @@ class UnameUniqueCheck(APIView):
     def post(self, request, uname):
         uname = uname
         if User.objects.filter(uname=uname).exists():
-            return Response(f'{uname}: 사용 불가능한 uname', status=status.HTTP_400_BAD_REQUEST)
+            return Response(False, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response(f'{uname}: 사용 가능한 uname', status=status.HTTP_200_OK)
+            return Response(True, status=status.HTTP_200_OK)
 
 
 '''
@@ -76,7 +76,7 @@ class UnameUniqueCheck(APIView):
 api/post/
 '''
 class PostListAPIView(ListAPIView):
-    queryset = Post.objects.all()
+    queryset = Post.objects.filter(is_deleted=False)
     serializer_class = PostListSerializer
 
     def list(self, request, *args, **kwargs):
@@ -111,7 +111,7 @@ class PostCreateAPIView(CreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
-    queryset = Post.objects.all()
+    queryset = Post.objects.filter(is_deleted=False)
     serializer_class = PostCreateSerializer
 
 
@@ -120,7 +120,7 @@ class PostCreateAPIView(CreateAPIView):
 api/post/<int:pk>/
 '''
 class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = Post.objects.all()
+    queryset = Post.objects.filter(is_deleted=False)
     serializer_class = PostRetrieveSerializer
 
     def retrieve(self, request, *args, **kwargs):
@@ -162,7 +162,7 @@ class PostLikeAPIView(APIView):
             post.save()
             return Response('좋아요 성공', status=status.HTTP_200_OK)
 
-    queryset = Post.objects.all()
+    queryset = Post.objects.filter(is_deleted=False)
     serializer_class = PostLikeSerializer
 
 
@@ -190,7 +190,7 @@ class PostBookmarkAPIView(APIView):
             post.save()
             return Response('북마크 성공', status=status.HTTP_200_OK)
 
-    queryset = Post.objects.all()
+    queryset = Post.objects.filter(is_deleted=False)
     serializer_class = PostBookmarkSerializer
 
 
@@ -225,7 +225,7 @@ class PostTagListAPIView(APIView):
         serializer = PostTagSerializer(post)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    queryset = Post.objects.all()
+    queryset = Post.objects.filter(is_deleted=False)
     serializer_class = PostTagSerializer
 
 
@@ -251,7 +251,7 @@ class PostTagAPIView(APIView):
             post.save()
             return Response(f'태그 성공: {user}', status=status.HTTP_200_OK)
 
-    queryset = Post.objects.all()
+    queryset = Post.objects.filter(is_deleted=False)
     serializer_class = PostTagSerializer
 
 

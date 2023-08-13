@@ -34,6 +34,8 @@ urlpatterns = [
     path('post/<int:pk>/tag/<int:user_id>/', views.PostTagAPIView.as_view(), name='post-tag'),
     # 새로운 게시글 생성(POST): 구현 및 연결
     path('post/create/', views.PostCreateAPIView.as_view(), name='post-create'),
+    # 특정 게시글 수정(PUT): 미구현
+    path('post/update/', views.PostUpdateAPIView.as_view(), name='post-update'),
 
     # 전체 핀 목록: 미구현
     path('pin/', views.PinListAPIView.as_view(), name='pin-list'),
