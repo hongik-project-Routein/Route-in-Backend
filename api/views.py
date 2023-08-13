@@ -137,6 +137,13 @@ class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance=data)
         return Response(serializer.data)
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.is_deleted = True
+        instance.save()
+
+        return Response('삭제되었습니다', status=status.HTTP_204_NO_CONTENT)
+
 
 '''
 특정 게시글 좋아요(POST, GET)
