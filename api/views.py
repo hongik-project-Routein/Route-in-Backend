@@ -214,9 +214,8 @@ class PostCommentListAPIView(ListCreateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
-        serializer.save(writer=self.request.user)
-        serializer.save(post=self.request.post)
-        serializer.save(tagged_users=self.request.tagged_users)
+        post = get_object_or_404(Post, pk=self.kwargs['pk'])
+        serializer.save(writer=self.request.user, post=post)
 
     queryset = Comment.objects.filter(is_deleted=False)
     serializer_class = CommentSerializer

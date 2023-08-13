@@ -174,6 +174,7 @@ called by:
 class CommentSerializer(serializers.ModelSerializer):
     writer_image = serializers.ImageField(source='writer.image', required=False)
     writer = serializers.ReadOnlyField(source='writer.uname')
+    like_users = serializers.StringRelatedField(many=True)
     like_count = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     tagged_users = serializers.StringRelatedField(many=True)
@@ -181,13 +182,16 @@ class CommentSerializer(serializers.ModelSerializer):
     def get_like_count(self, obj):
         return obj.like_users.count()
 
+    def get_like_users(self, obj):
+        return obj.like_users
+
     def get_is_liked(self, obj):
         cur_user = self.context.get('request').user
         return obj.like_users.exists()
 
     class Meta:
         model = Comment
-        fields = ['id', 'writer_image', 'writer', 'content', 'tagged_users', 'updated_at', 'post', 'like_count', 'is_liked']
+        fields = ['id', 'writer_image', 'writer', 'content', 'tagged_users', 'updated_at', 'post', 'like_users', 'like_count', 'is_liked']
 
 
 '''
