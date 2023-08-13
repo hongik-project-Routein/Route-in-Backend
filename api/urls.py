@@ -8,10 +8,15 @@ urlpatterns = [
 
     # 전체 유저 목록: 구현
     path('user/', views.UserListAPIView.as_view(), name='user-list'),
+    # 최초 가입 시 정보 입력(POST): 구현
+    path('user/initial_setting/', views.InitialSettingAPIView.as_view(), name='initial-setting'),
     # 특정 유저 상세: 구현
-    path('user/<int:pk>/', views.UserRetrieveAPIView.as_view(), name='user-retrieve'),
+    path('user/<str:uname>/', views.UserRetrieveAPIView.as_view(), name='user-retrieve'),
     # 특정 사용자 팔로우(POST, GET): 구현
-    path('user/<int:pk>/follow/', views.UserFollowAPIView.as_view(), name='user-follow'),
+    path('user/<str:uname>/follow/', views.UserFollowAPIView.as_view(), name='user-follow'),
+    # uname 중복 확인(POST): 구현
+    path('user/uname_check/<str:uname>/', views.UnameUniqueCheck.as_view(), name='uname-unique-check'),
+
 
     # 전체 게시글 목록(GET): 구현
     path('post/', views.PostListAPIView.as_view(), name='post-list'),
@@ -46,9 +51,10 @@ urlpatterns = [
     # 특정 댓글 사용자 태그(POST): 구현 중
     path('comment/<int:pk>/tag/<int:user_id>/', views.CommentTagAPIView.as_view(), name='comment-tag'),
 
-
     # 전체 해시태그 목록: 미구현
     path('hashtag/', views.HashtagListAPIView.as_view(), name='hashtag-list'),
     # 특정 해시태그 상세: 미구현
     path('hashtag/<int:pk>/', views.HashtagRetrieveAPIView.as_view(), name='hashtag-retrieve'),
+
+
 ]

@@ -4,23 +4,6 @@ from accounts.models import User
 from decimal import Decimal
 
 
-'''
-called by:
-    UserRetrieveAPIView
-'''
-class UserSerializer(serializers.ModelSerializer):
-    following_set = serializers.SerializerMethodField()
-    follower_set = serializers.SerializerMethodField()
-
-    def get_following_set(self, obj):
-        return obj.following_set.all().values_list('uname', flat=True)
-
-    def get_follower_set(self, obj):
-        return obj.follower_set.all().values_list('uname', flat=True)
-
-    class Meta:
-        model = User
-        fields = ['uname', 'id', 'password', 'last_login', 'email', 'name', 'age', 'gender', 'image', 'following_set', 'follower_set']
 
 
 # User ImageSerializer
@@ -54,6 +37,7 @@ class PostSerializer(serializers.ModelSerializer):
     tagged_users = serializers.StringRelatedField(many=True)
     is_liked = serializers.SerializerMethodField()
     is_bookmarked = serializers.SerializerMethodField()
+    hashtags = serializers.StringRelatedField(many=True)
     like_count = serializers.SerializerMethodField()
     pin_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
@@ -77,7 +61,28 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'writer', 'content', 'is_liked', 'is_bookmarked', 'pin_count', 'like_count', 'report_count', 'like_users', 'bookmark_users', 'tagged_users', 'comment_count']
+        fields = ['id', 'writer', 'content', 'is_liked', 'is_bookmarked', 'hashtags', 'pin_count', 'like_count', 'report_count', 'like_users', 'bookmark_users', 'tagged_users', 'comment_count']
+
+
+'''
+called by:
+    UserRetrieveAPIView
+'''
+class UserSerializer(serializers.ModelSerializer):
+    following_set = serializers.SerializerMethodField()
+    follower_set = serializers.SerializerMethodField()
+    posts = PostSerializer(many=True)
+
+    def get_following_set(self, obj):
+        return obj.following_set.all().values_list('uname', flat=True)
+
+    def get_follower_set(self, obj):
+        return obj.follower_set.all().values_list('uname', flat=True)
+
+    class Meta:
+        model = User
+        fields = ['uname', 'id', 'last_login', 'email', 'name', 'age', 'gender', 'image', 'following_set', 'follower_set', 'posts']
+
 
 
 '''
@@ -125,7 +130,7 @@ class PinDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Pin
-        fields = ['image', 'latitude', 'longitude']
+        fields = ['image', 'latitude', 'longitude', 'pin_hashtag', ]
 
 
 # Pin Serializer (for Post Create Serializer)
@@ -237,3 +242,13 @@ class PostListSerializer(serializers.Serializer):
     pin = PinDetailSerializer(many=True)
     user = UserImageSerializer()
     comment = CommentSerializer(many=True)
+
+
+'''
+called by:
+    InitialSettingAPIView
+'''
+class InitialSettingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['uname', 'name', 'age', 'gender']

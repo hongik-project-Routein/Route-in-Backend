@@ -56,7 +56,23 @@ def google_callback(request):
         if accept_status != 200:
             return JsonResponse({'err_msg': 'failed to signin'}, status=accept_status)
         accept_json = accept.json()
+
+        # name, uname, image, email, age, gender, follower_set, following_set 포함
+        user = User.objects.get(email=email)
+
+        user_info = {
+            'name': user.name,
+            'uname': user.uname,
+            'image': user.image if user.image else None,
+            'email': user.email,
+            'age': user.age,
+            'gender': user.gender,
+            'follower_set': user.follower_set,
+            'following_set': user.following_set,
+        }
+        accept_json['user_info'] = user_info
         accept_json.pop('user', None)
+
         return JsonResponse(accept_json)
 
     except:  # 기존에 가입된 유저가 없으면 새로 가입
@@ -68,6 +84,21 @@ def google_callback(request):
         if accept_status != 200:
             return JsonResponse({'err_msg': 'failed to signup'}, status=accept_status)
         accept_json = accept.json()
+
+        # name, uname, image, email, age, gender, follower_set, following_set 포함
+        user = User.objects.get(email=email)
+
+        user_info = {
+            'name': user.name,
+            'uname': user.uname,
+            'image': user.image if user.image else None,
+            'email': user.email,
+            'age': user.age,
+            'gender': user.gender,
+            'follower_set': user.follower_set,
+            'following_set': user.following_set,
+        }
+        accept_json['user_info'] = user_info
         accept_json.pop('user', None)
 
         return JsonResponse(accept_json)
@@ -120,8 +151,25 @@ def kakao_callback(request):
         if accept_status != 200:
             return JsonResponse({'err_msg': 'failed to signin'}, status=accept_status)
         accept_json = accept.json()
+
+        # name, uname, image, email, age, gender, follower_set, following_set 포함
+        user = User.objects.get(email=email)
+
+        user_info = {
+            'name': user.name,
+            'uname': user.uname,
+            'image': user.image if user.image else None,
+            'email': user.email,
+            'age': user.age,
+            'gender': user.gender,
+            'follower_set': user.follower_set,
+            'following_set': user.following_set,
+        }
+        accept_json['user_info'] = user_info
         accept_json.pop('user', None)
+
         return JsonResponse(accept_json)
+
     except User.DoesNotExist:
         # 기존에 가입된 유저가 없으면 새로 가입
         data = {'access_token': access_token}
@@ -132,7 +180,23 @@ def kakao_callback(request):
             return JsonResponse({'err_msg': 'failed to signup'}, status=accept_status)
         # user의 pk, email, first name, last name과 Access Token, Refresh token 가져옴
         accept_json = accept.json()
+
+        # name, uname, image, email, age, gender, follower_set, following_set 포함
+        user = User.objects.get(email=email)
+
+        user_info = {
+            'name': user.name,
+            'uname': user.uname,
+            'image': user.image if user.image else None,
+            'email': user.email,
+            'age': user.age,
+            'gender': user.gender,
+            'follower_set': user.follower_set,
+            'following_set': user.following_set,
+        }
+        accept_json['user_info'] = user_info
         accept_json.pop('user', None)
+
         return JsonResponse(accept_json)
 
 

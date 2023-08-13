@@ -14,11 +14,20 @@ class UserListAPIView(ListAPIView):
 
 '''
 특정 유저 상세(GET): 구현
-api/user/<int:pk>/
+api/user/<str:uname>/
 '''
-class UserRetrieveAPIView(RetrieveAPIView):
+class UserRetrieveAPIView(RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    lookup_field = 'uname'
+
+    def retrieve(self, request, *args, **kwargs):
+        serializer = self.get_serializer(instance=self.get_object())
+        return Response(serializer.data)
+
+    def get_object(self):
+        uname = self.kwargs['uname']
+        return get_object_or_404(User, uname=uname)
 
 
 '''
@@ -26,8 +35,8 @@ class UserRetrieveAPIView(RetrieveAPIView):
 api/user/<int:pk>/follow/
 '''
 class UserFollowAPIView(APIView):
-    def post(self, request, pk):
-        target_user = get_object_or_404(User, pk=pk)
+    def post(self, request, uname):
+        target_user = get_object_or_404(User, uname=uname)
         user = request.user
 
         # 자기 자신을 팔로우하는 경우
@@ -47,6 +56,19 @@ class UserFollowAPIView(APIView):
 
     queryset = User.objects.all()
     serializer_class = UserFollowSerializer
+
+
+'''
+uname 중복확인(POST): 구현 중
+api/user/uname_unique_check/<str:uname>/
+'''
+class UnameUniqueCheck(APIView):
+    def post(self, request, uname):
+        uname = uname
+        if User.objects.filter(uname=uname).exists():
+            return Response(f'{uname}: 사용 불가능한 uname', status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(f'{uname}: 사용 가능한 uname', status=status.HTTP_200_OK)
 
 
 '''
@@ -186,6 +208,8 @@ class PostCommentListAPIView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(writer=self.request.user)
+        serializer.save(post=self.request.post)
+        serializer.save(tagged_users=self.request.tagged_users)
 
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -352,3 +376,26 @@ class HashtagListAPIView(ListCreateAPIView):
 class HashtagRetrieveAPIView(RetrieveDestroyAPIView):
     queryset = Hashtag.objects.all()
     serializer_class = HashtagSerializer
+
+
+'''
+최초 가입 시 정보 입력(POST)
+api/initial_setting/
+'''
+class InitialSettingAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = InitialSettingSerializer(data=request.data)
+
+        if serializer.is_valid():
+            user = request.user
+
+            user.uname = serializer.validated_data.get('uname')
+            user.name = serializer.validated_data.get('name')
+            user.age = serializer.validated_data.get('age')
+            user.gender = serializer.validated_data.get('gender')
+            user.save()
+
+            return Response("초기 설정 완료.", status=status.HTTP_200_OK)
+
+        else:
+            return Response("초기 설정 실패, 재시도 필요", status=status.HTTP_400_BAD_REQUEST)

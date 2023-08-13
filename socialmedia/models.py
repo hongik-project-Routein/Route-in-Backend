@@ -43,7 +43,7 @@ class MapInfoModel(models.Model):
 
 # Post
 class Post(BaseModel):
-    writer = models.ForeignKey(User, on_delete=models.CASCADE, )
+    writer = models.ForeignKey(User, related_name='posts', on_delete=models.CASCADE, )
     content = models.TextField('CONTENT', max_length=200, blank=True)
     like_users = models.ManyToManyField(User, related_name='like_posts', blank=True)
     bookmark_users = models.ManyToManyField(User, related_name='bookmark_posts', blank=True)
@@ -79,7 +79,7 @@ class Comment(BaseModel):
 
 # Hashtag
 class Hashtag(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, )
+    post = models.ForeignKey(Post, related_name='hashtags', on_delete=models.CASCADE, )
     name = models.CharField('NAME', max_length=20, unique=True)
 
     def __str__(self):
