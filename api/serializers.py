@@ -51,13 +51,13 @@ class PostSerializer(serializers.ModelSerializer):
         return obj.bookmark_users.filter(id=cur_user.id).exists()
 
     def get_like_count(self, obj):
-        return obj.like_users.count()
+        return obj.like_users.filter(is_deleted=False).count()
 
     def get_pin_count(self, obj):
-        return obj.pins.count()
+        return obj.pins.filter(is_deleted=False).count()
 
     def get_comment_count(self, obj):
-        return obj.comments.count()
+        return obj.comments.filter(is_deleted=False).count()
 
     class Meta:
         model = Post
@@ -92,6 +92,7 @@ called by:
 class PostLikeSerializer(serializers.ModelSerializer):
     like_count = serializers.ReadOnlyField()
     like_users = serializers.StringRelatedField(many=True)
+
 
     class Meta:
         model = Post
@@ -178,7 +179,7 @@ class CommentSerializer(serializers.ModelSerializer):
     tagged_users = serializers.StringRelatedField(many=True)
 
     def get_like_count(self, obj):
-        return obj.like_users.count()
+        return obj.like_users.filter(is_deleted=False).count()
 
     def get_is_liked(self, obj):
         cur_user = self.context.get('request').user
