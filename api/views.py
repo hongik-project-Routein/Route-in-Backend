@@ -89,7 +89,7 @@ class PostListAPIView(ListAPIView):
             post_data['post'] = serializer.data
             post_data['pin'] = PinDetailSerializer(post.pins.all(), many=True, context={'request': request}).data
             post_data['user'] = UserImageSerializer(post.writer, context={'request': request}).data
-            post_data['comment'] = CommentSerializer(post.comments.all(), many=True, context={'request': request}).data
+            post_data['comment'] = CommentSerializer(post.comments.filter(is_deleted=False), many=True, context={'request': request}).data
             data.append(post_data)
 
         return Response(data)
@@ -127,7 +127,7 @@ class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         pin = instance.pins.all()
         user = instance.writer
-        comment = instance.comments.all()
+        comment = instance.comments.filter(is_deleted=False)
         data = {
             'post': instance,
             'pin': pin,
@@ -209,7 +209,7 @@ class PostCommentListAPIView(ListCreateAPIView):
 
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
-        comments = post.comments.all()
+        comments = post.comments.filter(is_deleted=False)
         serializer = CommentSerializer(comments, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
