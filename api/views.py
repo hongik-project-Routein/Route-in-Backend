@@ -9,7 +9,7 @@ from socialmedia.models import Post, Pin, Comment, Hashtag
 
 # User List
 class UserListAPIView(ListAPIView):
-    queryset = User.objects.filter(is_deleted=False)
+    queryset = User.objects.all()
     serializer_class = UserSerializer
 
 '''
@@ -17,7 +17,7 @@ class UserListAPIView(ListAPIView):
 api/user/<str:uname>/
 '''
 class UserRetrieveAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.filter(is_deleted=False)
+    queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'uname'
 
@@ -43,7 +43,7 @@ class UserFollowAPIView(APIView):
         if user == target_user:
             return Response('팔로우 실패: 자기 자신을 팔로우 할 수 없음', status.HTTP_200_OK)
 
-        if user in target_user.follower_set.filter(is_deleted=False):
+        if user in target_user.follower_set.all():
             # 이미 팔로우한 경우
             target_user.follower_set.remove(user)
             target_user.save()
@@ -54,7 +54,7 @@ class UserFollowAPIView(APIView):
             return Response('팔로우 성공', status=status.HTTP_200_OK)
 
 
-    queryset = User.objects.filter(is_deleted=False)
+    queryset = User.objects.all()
     serializer_class = UserFollowSerializer
 
 
@@ -159,7 +159,7 @@ class PostLikeAPIView(APIView):
         post = get_object_or_404(Post, pk=pk)
         user = request.user
 
-        if user in post.like_users.filter(is_deleted=False):
+        if user in post.like_users.all():
             # 이미 좋아요한 경우
             post.like_users.remove(user)
             post.save()
@@ -187,7 +187,7 @@ class PostBookmarkAPIView(APIView):
         post = get_object_or_404(Post, pk=pk)
         user = request.user
 
-        if user in post.bookmark_users.filter(is_deleted=False):
+        if user in post.bookmark_users.all():
             # 이미 북마크한 경우
             post.bookmark_users.remove(user)
             post.save()
@@ -248,7 +248,7 @@ class PostTagAPIView(APIView):
         except:
             return Response('태그 실패: 해당 유저를 찾을 수 없음', status=status.HTTP_404_NOT_FOUND)
 
-        if user in post.tagged_users.filter(is_deleted=False):
+        if user in post.tagged_users.all():
             # 이미 태그한 경우
             post.tagged_users.remove(user)
             post.save()
@@ -319,7 +319,7 @@ class CommentLikeAPIView(APIView):
         comment = get_object_or_404(Comment, pk=pk)
         user = request.user
 
-        if user in comment.like_users.filter(is_deleted=False):
+        if user in comment.like_users.all():
             # 이미 좋아요한 경우
             comment.like_users.remove(user)
             comment.save()
@@ -359,7 +359,7 @@ class CommentTagAPIView(APIView):
         except:
             return Response('태그 실패: 해당 유저를 찾을 수 없음', status=status.HTTP_404_NOT_FOUND)
 
-        if user in comment.tagged_users.filter(is_deleted=False):
+        if user in comment.tagged_users.all():
             # 이미 태그한 경우
             comment.tagged_users.remove(user)
             comment.save()
