@@ -218,7 +218,7 @@ class PostCommentListAPIView(ListCreateAPIView):
         serializer.save(post=self.request.post)
         serializer.save(tagged_users=self.request.tagged_users)
 
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.filter(is_deleted=False)
     serializer_class = CommentSerializer
 
 
@@ -292,7 +292,7 @@ class CommentListAPIView(ListCreateAPIView):
         post.save()
         return Response(post.comment_count, status=status.HTTP_200_OK)
 
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.filter(is_deleted=False)
     serializer_class = CommentSerializer
 
 
@@ -301,7 +301,7 @@ class CommentListAPIView(ListCreateAPIView):
 api/comment/<int:pk>/
 '''
 class CommentRetrieveAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.filter(is_deleted=False)
     serializer_class = CommentSerializer
 
 
@@ -329,7 +329,7 @@ class CommentLikeAPIView(APIView):
             comment.save()
             return Response('좋아요 성공', status=status.HTTP_200_OK)
 
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.filter(is_deleted=False)
     serializer_class = CommentLikeSerializer
 
 
@@ -343,7 +343,7 @@ class CommentTagListAPIView(APIView):
         serializer = CommentTagSerializer(comment)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.filter(is_deleted=False)
     serializer_class = CommentTagSerializer
 
 
@@ -369,7 +369,7 @@ class CommentTagAPIView(APIView):
             comment.save()
             return Response(f'태그 성공: {user}', status=status.HTTP_200_OK)
 
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.filter(is_deleted=False)
     serializer_class = CommentTagSerializer
 
 
