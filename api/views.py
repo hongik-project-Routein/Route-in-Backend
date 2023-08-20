@@ -1,7 +1,9 @@
 from rest_framework import status
+from rest_framework.filters import SearchFilter
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404, ListAPIView, \
-    RetrieveAPIView, RetrieveDestroyAPIView, CreateAPIView, GenericAPIView
+    RetrieveAPIView, RetrieveDestroyAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.response import Response
 from .serializers import *
 from socialmedia.models import Post, Pin, Comment, Hashtag
@@ -9,7 +11,7 @@ from socialmedia.models import Post, Pin, Comment, Hashtag
 
 # User List
 class UserListAPIView(ListAPIView):
-    queryset = User.objects.all()
+    queryset = User.objects.all().order_by('joined_at')
     serializer_class = UserSerializer
 
 '''
@@ -17,12 +19,13 @@ class UserListAPIView(ListAPIView):
 api/user/<str:uname>/
 '''
 class UserRetrieveAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+    queryset = User.objects.all().order_by('joined_at')
+    serializer_class = UserRetrieveSerializer
     lookup_field = 'uname'
 
     def retrieve(self, request, *args, **kwargs):
-        serializer = self.get_serializer(instance=self.get_object())
+        user = self.get_object()
+        serializer = self.get_serializer(instance=user, context={'request': request})
         return Response(serializer.data)
 
     def get_object(self):
@@ -76,23 +79,28 @@ class UnameUniqueCheck(APIView):
 api/post/
 '''
 class PostListAPIView(ListAPIView):
-    queryset = Post.objects.filter(is_deleted=False)
+    queryset = Post.objects.filter(is_deleted=False).order_by('created_at')
     serializer_class = PostListSerializer
+    pagination_class = PageNumberPagination
+    filter_backends = [SearchFilter]
+    search_fields = ['content']
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
 
         data = []
-        for post in queryset:
+        for post in page:
             post_data = {}
             serializer = PostSerializer(post, context={'request': request})
             post_data['post'] = serializer.data
             post_data['pin'] = PinDetailSerializer(post.pins.all(), many=True, context={'request': request}).data
             post_data['user'] = UserImageSerializer(post.writer, context={'request': request}).data
-            post_data['comment'] = CommentSerializer(post.comments.filter(is_deleted=False), many=True, context={'request': request}).data
+            post_data['comment'] = CommentSerializer(post.comments.filter(is_deleted=False), many=True,
+                                                     context={'request': request}).data
             data.append(post_data)
 
-        return Response(data)
+        return self.get_paginated_response(data)
 
 
 '''
@@ -146,14 +154,35 @@ class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
 
 
 '''
+특정 포스트 수정(PUT)
+api/post/<int:pk>/update/
+'''
+class PostUpdateAPIView(UpdateAPIView):
+    queryset = Post.objects.filter(is_deleted=False)
+    serializer_class = PostUpdateSerializer
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+
+'''
 특정 게시글 좋아요(POST, GET)
 api/post/<int:pk>/like/
 '''
 class PostLikeAPIView(APIView):
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
-        serializer = PostLikeSerializer(post)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        likes = post.like_users.all().order_by('id')  # id 기준 정렬, 수정 가능
+
+        paginator = PageNumberPagination()
+        paginated_likes = paginator.paginate_queryset(likes, request)
+
+        serializer = UserSerializer(paginated_likes, context={'request': request}, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
@@ -206,19 +235,21 @@ class PostBookmarkAPIView(APIView):
 api/post/<int:pk>/comment/
 '''
 class PostCommentListAPIView(ListCreateAPIView):
+    queryset = Comment.objects.filter(is_deleted=False)
+    serializer_class = CommentSerializer
+    pagination_class = PageNumberPagination
 
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
         comments = post.comments.filter(is_deleted=False)
-        serializer = CommentSerializer(comments, many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        page = self.paginate_queryset(comments)
+
+        serializer = CommentSerializer(page, many=True, context={'request': request})
+        return self.get_paginated_response(serializer.data)
 
     def perform_create(self, serializer):
         post = get_object_or_404(Post, pk=self.kwargs['pk'])
         serializer.save(writer=self.request.user, post=post)
-
-    queryset = Comment.objects.filter(is_deleted=False)
-    serializer_class = CommentSerializer
 
 
 '''

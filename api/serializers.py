@@ -4,8 +4,6 @@ from accounts.models import User
 from decimal import Decimal
 
 
-
-
 # User ImageSerializer
 class UserImageSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(max_length=None, allow_empty_file=True, use_url=True)
@@ -66,12 +64,12 @@ class PostSerializer(serializers.ModelSerializer):
 
 '''
 called by:
-    UserRetrieveAPIView
+    UserListAPIView, UserRetrieveAPIView
 '''
 class UserSerializer(serializers.ModelSerializer):
     following_set = serializers.SerializerMethodField()
     follower_set = serializers.SerializerMethodField()
-    posts = PostSerializer(many=True)
+    image = serializers.ImageField(max_length=None, allow_empty_file=True, use_url=True)
 
     def get_following_set(self, obj):
         return obj.following_set.all().values_list('uname', flat=True)
@@ -81,8 +79,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['uname', 'id', 'last_login', 'email', 'name', 'age', 'gender', 'image', 'following_set', 'follower_set', 'posts']
-
+        fields = ['uname', 'id', 'last_login', 'email', 'name', 'introduction', 'age', 'gender', 'image', 'following_set', 'follower_set', 'post_set']
 
 
 '''
@@ -92,7 +89,6 @@ called by:
 class PostLikeSerializer(serializers.ModelSerializer):
     like_count = serializers.ReadOnlyField()
     like_users = serializers.StringRelatedField(many=True)
-
 
     class Meta:
         model = Post
@@ -122,6 +118,7 @@ class PostTagSerializer(serializers.ModelSerializer):
         model = Post
         fields = ['tagged_users']
 
+
 '''
 called by:
     PostRetrieveSerializer
@@ -134,6 +131,16 @@ class PinDetailSerializer(serializers.ModelSerializer):
         fields = ['image', 'latitude', 'longitude', 'pin_hashtag', ]
 
 
+'''
+called by:
+    PostUpdateSerializer
+'''
+class PinUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pin
+        fields = ['id', 'image', 'latitude', 'longitude']
+
+
 # Pin Serializer (for Post Create Serializer)
 class PinSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(max_length=None, allow_empty_file=True, use_url=True)
@@ -143,7 +150,10 @@ class PinSerializer(serializers.ModelSerializer):
         fields = ['image', 'pin_hashtag', 'content', 'latitude', 'longitude', 'mapID']
 
 
-# Post Create Serializer
+'''
+called by:
+    PostCreateAPIView
+'''
 class PostCreateSerializer(serializers.ModelSerializer):
     pins = PinSerializer(many=True)
 
@@ -164,6 +174,33 @@ class PostCreateSerializer(serializers.ModelSerializer):
             pin.image.save(image_data.name, image_data, save=True)
 
         return post
+
+
+'''
+called by:
+    PostUpdateAPIView
+'''
+class PostUpdateSerializer(serializers.ModelSerializer):
+    pins = PinUpdateSerializer(many=True)
+
+    class Meta:
+        model = Post
+        fields = ['content', 'pins']
+
+    def update(self, instance, validated_data):
+        pins_data = validated_data.pop('pins')
+        pins_instances = instance.pins.all()
+
+        instance.content = validated_data.get('content', instance.content)
+        instance.save()
+
+        for pin_instance, pin_data in zip(pins_instances, pins_data):
+            pin_instance.image = pin_data.get('image', pin_instance.image)
+            pin_instance.latitude = pin_data.get('latitude', pin_instance.latitude)
+            pin_instance.longitude = pin_data.get('longitude', pin_instance.longitude)
+            pin_instance.save()
+
+        return instance
 
 
 '''
@@ -247,6 +284,30 @@ class PostListSerializer(serializers.Serializer):
     pin = PinDetailSerializer(many=True)
     user = UserImageSerializer()
     comment = CommentSerializer(many=True)
+
+
+'''
+called by:
+    UserRetrieveAPIView
+'''
+class UserRetrieveSerializer(serializers.ModelSerializer):
+    post_set = serializers.SerializerMethodField()
+
+    def get_post_set(self, obj):
+        posts = obj.post_set.filter(is_deleted=False)
+        post_data = []
+        for post in posts:
+            post_data.append({
+                'post': PostSerializer(post, context=self.context).data,
+                'pin': PinDetailSerializer(post.pins.all(), many=True, context=self.context).data,
+                'user': UserImageSerializer(post.writer, context=self.context).data,
+                'comment': CommentSerializer(post.comments.filter(is_deleted=False), many=True, context=self.context).data,
+            })
+        return post_data
+
+    class Meta:
+        model = User
+        fields = ['uname', 'id', 'last_login', 'email', 'name', 'introduction', 'age', 'gender', 'image', 'following_set', 'follower_set', 'post_set']
 
 
 '''

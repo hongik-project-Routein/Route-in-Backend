@@ -50,7 +50,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         return "/".join(
             [prefix, file_name, extension, ]
         )
-    image = models.ImageField('IMAGE', upload_to=upload_to_func, null=True, blank=True)
+    def default_image_path():
+        return 'default/default_profile.jpeg'
+    image = models.ImageField('IMAGE', upload_to=upload_to_func, default=default_image_path, null=True, blank=True)
+    introduction = models.TextField('INTRODUCTION', max_length=200, blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
