@@ -68,7 +68,13 @@ def google_callback(request):
     user = User.objects.get(email=email)
     accept_json['name'] = user.name
     accept_json['uname'] = user.uname
-    accept_json['image'] = user.image.url if user.image else None
+    # 이미지 경로를 절대 URL로 생성
+    image_url = None
+    if user.image:
+        image_url = request.build_absolute_uri(user.image.url)
+    else:
+        image_url = None
+    accept_json['image'] = image_url
     accept_json['email'] = user.email
     accept_json['age'] = user.age
     accept_json['gender'] = user.gender

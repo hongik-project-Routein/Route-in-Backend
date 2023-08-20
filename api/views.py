@@ -178,6 +178,7 @@ class PostUpdateAPIView(RetrieveUpdateAPIView):
         }
         return Response(data)
 
+
 '''
 특정 게시글 좋아요(POST, GET)
 api/post/<int:pk>/like/

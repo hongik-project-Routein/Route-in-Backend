@@ -4,7 +4,6 @@ from accounts.models import User
 from decimal import Decimal
 
 
-# User ImageSerializer
 class UserImageSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(max_length=None, allow_empty_file=True, use_url=True)
 
@@ -13,10 +12,6 @@ class UserImageSerializer(serializers.ModelSerializer):
         fields = ['image']
 
 
-'''
-called by:
-    UserFollowAPIView
-'''
 class UserFollowSerializer(serializers.ModelSerializer):
     follow_count = serializers.ReadOnlyField()
 
@@ -25,19 +20,12 @@ class UserFollowSerializer(serializers.ModelSerializer):
         fields = ['follow_count', ]
 
 
-'''
-called by:
-    PostUpdateSerializer
-'''
 class PostContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['content']
 
-'''
-called by:
-    PostRetrieveSerializer
-'''
+
 class PostSerializer(serializers.ModelSerializer):
     writer = serializers.ReadOnlyField(source='writer.uname')
     like_users = serializers.StringRelatedField(many=True)
@@ -72,10 +60,6 @@ class PostSerializer(serializers.ModelSerializer):
         fields = ['id', 'writer', 'content', 'is_liked', 'is_bookmarked', 'hashtags', 'pin_count', 'like_count', 'report_count', 'like_users', 'bookmark_users', 'tagged_users', 'comment_count']
 
 
-'''
-called by:
-    UserListAPIView, UserRetrieveAPIView
-'''
 class UserSerializer(serializers.ModelSerializer):
     following_set = serializers.SerializerMethodField()
     follower_set = serializers.SerializerMethodField()
@@ -92,10 +76,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['uname', 'id', 'last_login', 'email', 'name', 'introduction', 'age', 'gender', 'image', 'following_set', 'follower_set', 'post_set']
 
 
-'''
-called by:
-    PostLikeAPIView
-'''
 class PostLikeSerializer(serializers.ModelSerializer):
     like_count = serializers.ReadOnlyField()
     like_users = serializers.StringRelatedField(many=True)
@@ -105,10 +85,6 @@ class PostLikeSerializer(serializers.ModelSerializer):
         fields = ['like_count', 'like_users']
 
 
-'''
-called by:
-    PostBookmarkAPIView
-'''
 class PostBookmarkSerializer(serializers.ModelSerializer):
     bookmark_users = serializers.StringRelatedField(many=True)
 
@@ -117,10 +93,6 @@ class PostBookmarkSerializer(serializers.ModelSerializer):
         fields = ['bookmark_users']
 
 
-'''
-called by:
-    PostTagAPIView, PostTagListAPIView
-'''
 class PostTagSerializer(serializers.ModelSerializer):
     tagged_users = serializers.StringRelatedField(many=True)
 
@@ -129,10 +101,6 @@ class PostTagSerializer(serializers.ModelSerializer):
         fields = ['tagged_users']
 
 
-'''
-called by:
-    PostRetrieveSerializer
-'''
 class PinDetailSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(max_length=None, allow_empty_file=True, use_url=True)
 
@@ -141,17 +109,12 @@ class PinDetailSerializer(serializers.ModelSerializer):
         fields = ['image', 'latitude', 'longitude', 'pin_hashtag', 'content', ]
 
 
-'''
-called by:
-    PostUpdateSerializer
-'''
 class PinUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pin
         fields = ['id', 'image', 'latitude', 'longitude']
 
 
-# Pin Serializer (for Post Create Serializer)
 class PinSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(max_length=None, allow_empty_file=True, use_url=True)
 
@@ -160,10 +123,6 @@ class PinSerializer(serializers.ModelSerializer):
         fields = ['image', 'pin_hashtag', 'content', 'latitude', 'longitude', 'mapID']
 
 
-'''
-called by:
-    PostCreateAPIView
-'''
 class PostCreateSerializer(serializers.ModelSerializer):
     pins = PinSerializer(many=True)
 
@@ -186,10 +145,6 @@ class PostCreateSerializer(serializers.ModelSerializer):
         return post
 
 
-'''
-called by:
-    PostUpdateAPIView
-'''
 class PostUpdateSerializer(serializers.ModelSerializer):
     pins = PinUpdateSerializer(many=True)
 
@@ -208,16 +163,13 @@ class PostUpdateSerializer(serializers.ModelSerializer):
             pin_instance.image = pin_data.get('image', pin_instance.image)
             pin_instance.latitude = pin_data.get('latitude', pin_instance.latitude)
             pin_instance.longitude = pin_data.get('longitude', pin_instance.longitude)
+            pin_instance.content = pin_data.get('content', pin_instance.content)
+            pin_instance.pin_hashtag = pin_data.get('pin_hashtag', pin_instance.pin_hashtag)
             pin_instance.save()
 
         return instance
 
 
-'''
-called by:
-    PostCommentListView
-    PostRetrieveSerializer
-'''
 class CommentSerializer(serializers.ModelSerializer):
     writer_image = serializers.ImageField(source='writer.image', required=False)
     writer = serializers.ReadOnlyField(source='writer.uname')
@@ -241,10 +193,6 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ['id', 'writer_image', 'writer', 'content', 'tagged_users', 'updated_at', 'post', 'like_users', 'like_count', 'is_liked']
 
 
-'''
-called by:
-    CommentLikeAPIView
-'''
 class CommentLikeSerializer(serializers.ModelSerializer):
     like_count = serializers.ReadOnlyField()
     like_users = serializers.StringRelatedField(many=True)
@@ -254,10 +202,6 @@ class CommentLikeSerializer(serializers.ModelSerializer):
         fields = ['like_count', 'like_users']
 
 
-'''
-called by:
-    CommentTagAPIView, CommentTagListAPIView
-'''
 class CommentTagSerializer(serializers.ModelSerializer):
     tagged_users = serializers.StringRelatedField(many=True)
 
@@ -266,7 +210,6 @@ class CommentTagSerializer(serializers.ModelSerializer):
         fields = ['tagged_users']
 
 
-# Hashtag Serializer
 class HashtagSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -274,10 +217,6 @@ class HashtagSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 
-'''
-called by:
-    PostRetrieveAPIView
-'''
 class PostRetrieveSerializer(serializers.Serializer):
     post = PostSerializer()
     pin = PinDetailSerializer(many=True)
@@ -285,10 +224,6 @@ class PostRetrieveSerializer(serializers.Serializer):
     comment = CommentSerializer(many=True)
 
 
-'''
-called by:
-    PostListAPIView
-'''
 class PostListSerializer(serializers.Serializer):
     post = PostSerializer()
     pin = PinDetailSerializer(many=True)
@@ -296,10 +231,6 @@ class PostListSerializer(serializers.Serializer):
     comment = CommentSerializer(many=True)
 
 
-'''
-called by:
-    UserRetrieveAPIView
-'''
 class UserRetrieveSerializer(serializers.ModelSerializer):
     post_set = serializers.SerializerMethodField()
 
@@ -320,10 +251,6 @@ class UserRetrieveSerializer(serializers.ModelSerializer):
         fields = ['uname', 'id', 'last_login', 'email', 'name', 'introduction', 'age', 'gender', 'image', 'following_set', 'follower_set', 'post_set']
 
 
-'''
-called by:
-    InitialSettingAPIView
-'''
 class InitialSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
