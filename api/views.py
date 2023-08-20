@@ -3,7 +3,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404, ListAPIView, \
-    RetrieveAPIView, RetrieveDestroyAPIView, CreateAPIView, UpdateAPIView
+    RetrieveAPIView, RetrieveDestroyAPIView, CreateAPIView, UpdateAPIView, RetrieveUpdateAPIView
 from rest_framework.response import Response
 from .serializers import *
 from socialmedia.models import Post, Pin, Comment, Hashtag
@@ -157,7 +157,7 @@ class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
 특정 포스트 수정(PUT)
 api/post/<int:pk>/update/
 '''
-class PostUpdateAPIView(UpdateAPIView):
+class PostUpdateAPIView(RetrieveUpdateAPIView):
     queryset = Post.objects.filter(is_deleted=False)
     serializer_class = PostUpdateSerializer
 
@@ -167,6 +167,16 @@ class PostUpdateAPIView(UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        post_serializer = PostContentSerializer(instance, context={'request': request})
+        pins_serializer = PinDetailSerializer(instance.pins.all(), many=True, context={'request': request})
+        data = {
+            'post': post_serializer.data,
+            'pins': pins_serializer.data
+        }
+        return Response(data)
 
 
 '''

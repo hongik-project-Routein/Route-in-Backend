@@ -24,6 +24,16 @@ class UserFollowSerializer(serializers.ModelSerializer):
         model = User
         fields = ['follow_count', ]
 
+
+'''
+called by:
+    PostUpdateSerializer
+'''
+class PostContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['content']
+
 '''
 called by:
     PostRetrieveSerializer
