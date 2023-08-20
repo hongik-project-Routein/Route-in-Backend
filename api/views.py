@@ -173,11 +173,10 @@ class PostUpdateAPIView(RetrieveUpdateAPIView):
         post_serializer = PostContentSerializer(instance, context={'request': request})
         pins_serializer = PinDetailSerializer(instance.pins.all(), many=True, context={'request': request})
         data = {
-            'post': post_serializer.data,
+            **post_serializer.data,
             'pins': pins_serializer.data
         }
         return Response(data)
-
 
 '''
 특정 게시글 좋아요(POST, GET)
