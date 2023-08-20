@@ -28,6 +28,13 @@ class UserRetrieveAPIView(RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance=user, context={'request': request})
         return Response(serializer.data)
 
+    def put(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(instance=user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
     def get_object(self):
         uname = self.kwargs['uname']
         return get_object_or_404(User, uname=uname)
@@ -75,11 +82,11 @@ class UnameUniqueCheck(APIView):
 
 
 '''
-전체 게시글 목록(GET): 구현 중
+전체 게시글 목록(GET)
 api/post/
 '''
 class PostListAPIView(ListAPIView):
-    queryset = Post.objects.filter(is_deleted=False).order_by('created_at')
+    queryset = Post.objects.filter(is_deleted=False).order_by('-created_at')
     serializer_class = PostListSerializer
     pagination_class = PageNumberPagination
     filter_backends = [SearchFilter]

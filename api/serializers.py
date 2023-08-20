@@ -112,7 +112,7 @@ class PinDetailSerializer(serializers.ModelSerializer):
 class PinUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pin
-        fields = ['id', 'image', 'latitude', 'longitude']
+        fields = ['id', 'latitude', 'longitude', 'content', 'pin_hashtag']
 
 
 class PinSerializer(serializers.ModelSerializer):
@@ -160,7 +160,7 @@ class PostUpdateSerializer(serializers.ModelSerializer):
         instance.save()
 
         for pin_instance, pin_data in zip(pins_instances, pins_data):
-            pin_instance.image = pin_data.get('image', pin_instance.image)
+            # pin_instance.image = pin_data.get('image', pin_instance.image)
             pin_instance.latitude = pin_data.get('latitude', pin_instance.latitude)
             pin_instance.longitude = pin_data.get('longitude', pin_instance.longitude)
             pin_instance.content = pin_data.get('content', pin_instance.content)

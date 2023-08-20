@@ -14,7 +14,6 @@ urlpatterns = [
     # uname 중복 확인(POST)
     path('user/uname_check/<str:uname>/', views.UnameUniqueCheck.as_view(), name='uname-unique-check'),
 
-
     # 전체 게시글 목록(GET)
     path('post/', views.PostListAPIView.as_view(), name='post-list'),
     # 특정 게시글 상세(GET, PUT, DELETE)
