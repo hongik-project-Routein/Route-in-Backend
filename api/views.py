@@ -331,12 +331,17 @@ class PinListAPIView(ListCreateAPIView):
 
 
 # Pin Retrieve
-class PinRetrieveAPIView(RetrieveAPIView):
+class PinRetrieveAPIView(RetrieveDestroyAPIView):
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
         pins = post.pins.all()
         serializer = PinSerializer(pins, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, pk):
+        pin = self.get_object()
+        pin.delete()
+        return Response("삭제 성공", status=status.HTTP_204_NO_CONTENT)
 
     queryset = Pin.objects.all()
     serializer_class = PinDetailSerializer
@@ -449,9 +454,10 @@ class HashtagRetrieveAPIView(RetrieveDestroyAPIView):
 
 '''
 최초 가입 시 정보 입력 (POST)
-api/initial_setting/
+api/user/initial_setting/
 '''
 class InitialSettingAPIView(APIView):
+
     def post(self, request, *args, **kwargs):
         serializer = InitialSettingSerializer(data=request.data)
 

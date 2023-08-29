@@ -39,7 +39,6 @@ def google_callback(request):
     """
     try:  # 기존에 가입된 유저의 Provider가 google이 아니면 에러 발생, 맞으면 로그인
         user = User.objects.get(email=email)
-        user = User.objects.get(email=email)
         # # 다른 SNS로 가입된 유저
         # social_user = SocialAccount.objects.get(user=user)
         # if social_user is None:

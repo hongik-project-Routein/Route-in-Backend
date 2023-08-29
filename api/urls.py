@@ -38,7 +38,7 @@ urlpatterns = [
 
     # 전체 핀 목록
     path('pin/', views.PinListAPIView.as_view(), name='pin-list'),
-    # 특정 핀 상세
+    # 특정 핀 상세 및 삭제
     path('pin/<int:pk>/', views.PinRetrieveAPIView.as_view(), name='pin-retrieve'),
 
     # 전체 댓글 목록(GET) 및 새로운 댓글 생성(POST)
