@@ -13,11 +13,10 @@ class UserImageSerializer(serializers.ModelSerializer):
 
 
 class UserFollowSerializer(serializers.ModelSerializer):
-    follow_count = serializers.ReadOnlyField()
 
     class Meta:
         model = User
-        fields = ['follow_count', ]
+        fields = ['uname', 'name', 'image']
 
 
 class PostContentSerializer(serializers.ModelSerializer):
@@ -112,7 +111,7 @@ class PinDetailSerializer(serializers.ModelSerializer):
 class PinUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pin
-        fields = ['id', 'latitude', 'longitude', 'content', 'pin_hashtag']
+        fields = ['content', 'pin_hashtag']
 
 
 class PinSerializer(serializers.ModelSerializer):
@@ -156,13 +155,12 @@ class PostUpdateSerializer(serializers.ModelSerializer):
         pins_data = validated_data.pop('pins')
         pins_instances = instance.pins.all()
 
+        # Update content only
         instance.content = validated_data.get('content', instance.content)
         instance.save()
 
+        # Update pins
         for pin_instance, pin_data in zip(pins_instances, pins_data):
-            # pin_instance.image = pin_data.get('image', pin_instance.image)
-            pin_instance.latitude = pin_data.get('latitude', pin_instance.latitude)
-            pin_instance.longitude = pin_data.get('longitude', pin_instance.longitude)
             pin_instance.content = pin_data.get('content', pin_instance.content)
             pin_instance.pin_hashtag = pin_data.get('pin_hashtag', pin_instance.pin_hashtag)
             pin_instance.save()

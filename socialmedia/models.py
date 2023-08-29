@@ -41,6 +41,14 @@ class MapInfoModel(models.Model):
         abstract = True
 
 
+# Hashtag
+class Hashtag(models.Model):
+    name = models.CharField('NAME', max_length=20, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 # Post
 class Post(BaseModel):
     writer = models.ForeignKey(User, related_name='post_set', on_delete=models.CASCADE, )
@@ -49,6 +57,7 @@ class Post(BaseModel):
     bookmark_users = models.ManyToManyField(User, related_name='bookmark_posts', blank=True)
     tagged_users = models.ManyToManyField(User, related_name='tagging_posts', blank=True)
     report_count = models.IntegerField('REPORT_COUNT', default=0)
+    hashtags = models.ManyToManyField(Hashtag, related_name='posts', blank=True)
 
     def __str__(self):
         return f'{self.writer}: {self.content[:10]}' or ''
@@ -60,9 +69,22 @@ class Pin(MapInfoModel):
     image = models.ImageField('IMAGE', upload_to=upload_to_func)
     pin_hashtag = models.CharField('PIN_HASHTAG', max_length=20, blank=True, null=True)
     content = models.TextField('SUB_CONTENT', max_length=200, blank=True, null=True)
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.post}) {self.content[:10]}' or ''
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.pin_hashtag:
+            hashtag, created = Hashtag.objects.get_or_create(name=self.pin_hashtag)
+            self.post.hashtags.add(hashtag)
+
+    def delete(self, using=None, keep_parents=False):
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.save()
 
 
 # Comment
@@ -77,10 +99,4 @@ class Comment(BaseModel):
         return f'{self.post}) {self.writer}: {self.content[:10]}' or ''
 
 
-# Hashtag
-class Hashtag(models.Model):
-    post = models.ForeignKey(Post, related_name='hashtags', on_delete=models.CASCADE, )
-    name = models.CharField('NAME', max_length=20, unique=True)
 
-    def __str__(self):
-        return f'{self.post}) {self.name}' or ''

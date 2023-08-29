@@ -14,6 +14,7 @@ class UserListAPIView(ListAPIView):
     queryset = User.objects.all().order_by('joined_at')
     serializer_class = UserSerializer
 
+
 '''
 특정 유저 상세(GET): 구현
 api/user/<str:uname>/
@@ -42,7 +43,7 @@ class UserRetrieveAPIView(RetrieveUpdateDestroyAPIView):
 
 '''
 특정 사용자 팔로우(POST): 구현
-api/user/<int:pk>/follow/
+api/user/<str:uname>/follow/
 '''
 class UserFollowAPIView(APIView):
     def post(self, request, uname):
@@ -62,6 +63,19 @@ class UserFollowAPIView(APIView):
             target_user.follower_set.add(user)
             target_user.save()
             return Response('팔로우 성공', status=status.HTTP_200_OK)
+
+    def get(self, request, uname):
+        user = get_object_or_404(User, uname=uname)
+        following_users = user.following_set.all()
+        follower_users = user.follower_set.all()
+
+        following_serializer = UserFollowSerializer(following_users, many=True, context={'request': request})
+        follower_serializer = UserFollowSerializer(follower_users, many=True, context={'request': request})
+        data = {
+            'following_users': following_serializer.data,
+            'follower_users': follower_serializer.data
+        }
+        return Response(data, status=status.HTTP_200_OK)
 
 
     queryset = User.objects.all()
@@ -91,6 +105,7 @@ class PostListAPIView(ListAPIView):
     pagination_class = PageNumberPagination
     filter_backends = [SearchFilter]
     search_fields = ['content']
+    # search_fields = ['hashtags']
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -131,10 +146,10 @@ class PostCreateAPIView(CreateAPIView):
 
 
 '''
-특정 게시글 상세(GET, PUT, DELETE)
+특정 게시글 상세(GET, DELETE)
 api/post/<int:pk>/
 '''
-class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
+class PostRetrieveAPIView(RetrieveDestroyAPIView):
     queryset = Post.objects.filter(is_deleted=False)
     serializer_class = PostRetrieveSerializer
 
@@ -157,11 +172,11 @@ class PostRetrieveAPIView(RetrieveUpdateDestroyAPIView):
         instance.is_deleted = True
         instance.save()
 
-        return Response('삭제되었습니다', status=status.HTTP_204_NO_CONTENT)
+        return Response('삭제 성공', status=status.HTTP_204_NO_CONTENT)
 
 
 '''
-특정 포스트 수정(PUT)
+특정 포스트 수정(PUT, GET)
 api/post/<int:pk>/update/
 '''
 class PostUpdateAPIView(RetrieveUpdateAPIView):
@@ -344,7 +359,7 @@ class CommentListAPIView(ListCreateAPIView):
 
 
 '''
-특정 댓글 상세(GET, PUT, DELETE)
+특정 댓글 상세 (GET, PUT, DELETE)
 api/comment/<int:pk>/
 '''
 class CommentRetrieveAPIView(RetrieveUpdateDestroyAPIView):
@@ -353,7 +368,7 @@ class CommentRetrieveAPIView(RetrieveUpdateDestroyAPIView):
 
 
 '''
-특정 댓글 좋아요(POST, GET)
+특정 댓글 좋아요 (POST, GET)
 api/comment/<int:pk>/like/
 '''
 class CommentLikeAPIView(APIView):
@@ -381,7 +396,7 @@ class CommentLikeAPIView(APIView):
 
 
 '''
-특정 댓글 태그된 사용자 목록(GET)
+특정 댓글 태그된 사용자 목록 (GET)
 api/comment/<int:pk>/tag/
 '''
 class CommentTagListAPIView(APIView):
@@ -395,7 +410,7 @@ class CommentTagListAPIView(APIView):
 
 
 '''
-특정 댓글 사용자 태그(POST)
+특정 댓글 사용자 태그 (POST)
 api/comment/<int:pk>/tag/<int:user_id>
 '''
 class CommentTagAPIView(APIView):
@@ -433,7 +448,7 @@ class HashtagRetrieveAPIView(RetrieveDestroyAPIView):
 
 
 '''
-최초 가입 시 정보 입력(POST)
+최초 가입 시 정보 입력 (POST)
 api/initial_setting/
 '''
 class InitialSettingAPIView(APIView):
@@ -453,3 +468,17 @@ class InitialSettingAPIView(APIView):
 
         else:
             return Response("초기 설정 실패, 재시도 필요", status=status.HTTP_400_BAD_REQUEST)
+
+
+'''
+특정 사용자 북마크한 게시글 목록 (GET)
+api/user/<str:uname>/bookmark/
+'''
+class UserBookmarkListAPIView(PostListAPIView):
+
+    def get_queryset(self):
+        uname = self.kwargs['uname']
+        user = User.objects.get(uname=uname)
+        bookmarked_posts = user.bookmark_posts.filter(is_deleted=False)
+
+        return bookmarked_posts
