@@ -116,7 +116,7 @@ class PostListAPIView(ListAPIView):
             post_data = {}
             serializer = PostSerializer(post, context={'request': request})
             post_data['post'] = serializer.data
-            post_data['pin'] = PinDetailSerializer(post.pins.all(), many=True, context={'request': request}).data
+            post_data['pin'] = PinDetailSerializer(post.pins.filter(is_deleted=False), many=True, context={'request': request}).data
             post_data['user'] = UserImageSerializer(post.writer, context={'request': request}).data
             post_data['comment'] = CommentSerializer(post.comments.filter(is_deleted=False), many=True,
                                                      context={'request': request}).data
@@ -155,7 +155,7 @@ class PostRetrieveAPIView(RetrieveDestroyAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        pin = instance.pins.all()
+        pin = instance.pins.filter(is_deleted=False)
         user = instance.writer
         comment = instance.comments.filter(is_deleted=False)
         data = {
@@ -193,7 +193,7 @@ class PostUpdateAPIView(RetrieveUpdateAPIView):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         post_serializer = PostContentSerializer(instance, context={'request': request})
-        pins_serializer = PinDetailSerializer(instance.pins.all(), many=True, context={'request': request})
+        pins_serializer = PinDetailSerializer(instance.pins.filter(is_deleted=False), many=True, context={'request': request})
         data = {
             **post_serializer.data,
             'pins': pins_serializer.data
@@ -334,12 +334,12 @@ class PinListAPIView(ListCreateAPIView):
 class PinRetrieveAPIView(RetrieveDestroyAPIView):
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
-        pins = post.pins.all()
+        pins = post.pins.filter(is_deleted=False)
         serializer = PinSerializer(pins, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk):
-        pin = self.get_object_or_404(Pin, pk=pk)
+        pin = self.get_object()
         pin.delete()
         return Response("삭제 성공", status=status.HTTP_204_NO_CONTENT)
 
