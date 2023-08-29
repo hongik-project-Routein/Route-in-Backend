@@ -105,7 +105,7 @@ class PinDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Pin
-        fields = ['image', 'latitude', 'longitude', 'pin_hashtag', 'content', ]
+        fields = ['id', 'image', 'latitude', 'longitude', 'pin_hashtag', 'content', ]
 
 
 class PinUpdateSerializer(serializers.ModelSerializer):

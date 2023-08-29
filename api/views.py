@@ -339,7 +339,7 @@ class PinRetrieveAPIView(RetrieveDestroyAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk):
-        pin = self.get_object()
+        pin = self.get_object_or_404(Pin, pk=pk)
         pin.delete()
         return Response("삭제 성공", status=status.HTTP_204_NO_CONTENT)
 
