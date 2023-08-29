@@ -231,6 +231,8 @@ class PostListSerializer(serializers.Serializer):
 
 class UserRetrieveSerializer(serializers.ModelSerializer):
     post_set = serializers.SerializerMethodField()
+    following_set = serializers.SerializerMethodField()
+    follower_set = serializers.SerializerMethodField()
 
     def get_post_set(self, obj):
         posts = obj.post_set.filter(is_deleted=False)
@@ -243,6 +245,14 @@ class UserRetrieveSerializer(serializers.ModelSerializer):
                 'comment': CommentSerializer(post.comments.filter(is_deleted=False), many=True, context=self.context).data,
             })
         return post_data
+    
+    def get_following_set(self, obj):
+        following_users = obj.following_set.all()
+        return [user.uname for user in following_users]
+
+    def get_follower_set(self, obj):
+        follower_users = obj.follower_set.all()
+        return [user.uname for user in follower_users]
 
     class Meta:
         model = User
