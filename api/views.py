@@ -326,7 +326,7 @@ class PostTagAPIView(APIView):
 
 # Pin List + Create
 class PinListAPIView(ListCreateAPIView):
-    queryset = Pin.objects.all()
+    queryset = Pin.objects.filter(is_deleted=False)
     serializer_class = PinSerializer
 
 
@@ -343,7 +343,7 @@ class PinRetrieveAPIView(RetrieveDestroyAPIView):
         pin.delete()
         return Response("삭제 성공", status=status.HTTP_204_NO_CONTENT)
 
-    queryset = Pin.objects.all()
+    queryset = Pin.objects.filter(is_deleted=False)
     serializer_class = PinDetailSerializer
 
 
