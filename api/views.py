@@ -64,20 +64,6 @@ class UserFollowAPIView(APIView):
             target_user.save()
             return Response('팔로우 성공', status=status.HTTP_200_OK)
 
-    def get(self, request, uname):
-        user = get_object_or_404(User, uname=uname)
-        following_users = user.following_set.all()
-        follower_users = user.follower_set.all()
-
-        following_serializer = UserFollowSerializer(following_users, many=True, context={'request': request})
-        follower_serializer = UserFollowSerializer(follower_users, many=True, context={'request': request})
-        data = {
-            'following_users': following_serializer.data,
-            'follower_users': follower_serializer.data
-        }
-        return Response(data, status=status.HTTP_200_OK)
-
-
     queryset = User.objects.all()
     serializer_class = UserFollowSerializer
 
@@ -273,7 +259,7 @@ class PostCommentListAPIView(ListCreateAPIView):
 
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
-        comments = post.comments.filter(is_deleted=False)
+        comments = post.comments.filter(is_deleted=False).order_by('-created_at')
         page = self.paginate_queryset(comments)
 
         serializer = CommentSerializer(page, many=True, context={'request': request})
@@ -457,8 +443,7 @@ class HashtagRetrieveAPIView(RetrieveDestroyAPIView):
 api/user/initial_setting/
 '''
 class InitialSettingAPIView(APIView):
-
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = InitialSettingSerializer(data=request.data)
 
         if serializer.is_valid():

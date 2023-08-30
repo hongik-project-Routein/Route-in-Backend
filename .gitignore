@@ -166,6 +166,9 @@ Route_in/Route_in_DB.py
 _media/
 media/
 
+# Sentiment Analysis
+sentiment_analysis/
+
 # Secret Keys
 secretKeys.py
 secrets.json

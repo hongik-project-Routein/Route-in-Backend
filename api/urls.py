@@ -5,17 +5,16 @@ app_name = 'api'
 urlpatterns = [
     # 전체 유저 목록
     path('user/', views.UserListAPIView.as_view(), name='user-list'),
-
-    # 특정 유저 상세(GET)
-    path('user/<str:uname>/', views.UserRetrieveAPIView.as_view(), name='user-retrieve'),
-    # 특정 사용자 팔로우(POST, GET)
-    path('user/<str:uname>/follow/', views.UserFollowAPIView.as_view(), name='user-follow'),
-    # 특정 유저 북마크 게시글 목록(GET)
-    path('user/<str:uname>/bookmark/', views.UserBookmarkListAPIView.as_view(), name='user-bookmark'),
     # 최초 가입 시 정보 입력(POST)
     path('user/initial_setting/', views.InitialSettingAPIView.as_view(), name='initial-setting'),
     # uname 중복 확인(POST)
     path('user/uname_check/<str:uname>/', views.UnameUniqueCheck.as_view(), name='uname-unique-check'),
+    # 특정 유저 상세(GET)
+    path('user/<str:uname>/', views.UserRetrieveAPIView.as_view(), name='user-retrieve'),
+    # 특정 사용자 팔로우(POST)
+    path('user/<str:uname>/follow/', views.UserFollowAPIView.as_view(), name='user-follow'),
+    # 특정 유저 북마크 게시글 목록(GET)
+    path('user/<str:uname>/bookmark/', views.UserBookmarkListAPIView.as_view(), name='user-bookmark'),
 
     # 전체 게시글 목록(GET)
     path('post/', views.PostListAPIView.as_view(), name='post-list'),

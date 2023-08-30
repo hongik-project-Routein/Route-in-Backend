@@ -13,7 +13,6 @@ class UserImageSerializer(serializers.ModelSerializer):
 
 
 class UserFollowSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = ['uname', 'name', 'image']
@@ -179,16 +178,19 @@ class CommentSerializer(serializers.ModelSerializer):
     def get_like_count(self, obj):
         return obj.like_users.count()
 
-    def get_like_users(self, obj):
-        return obj.like_users
-
     def get_is_liked(self, obj):
         cur_user = self.context.get('request').user
         return obj.like_users.exists()
 
+    def update(self, instance, validated_data):
+        instance.content = validated_data.get('content', instance.content)
+        instance.save()
+        return instance
+
     class Meta:
         model = Comment
         fields = ['id', 'writer_image', 'writer', 'content', 'tagged_users', 'updated_at', 'post', 'like_users', 'like_count', 'is_liked']
+
 
 
 class CommentLikeSerializer(serializers.ModelSerializer):
@@ -245,7 +247,7 @@ class UserRetrieveSerializer(serializers.ModelSerializer):
                 'comment': CommentSerializer(post.comments.filter(is_deleted=False), many=True, context=self.context).data,
             })
         return post_data
-    
+
     def get_following_set(self, obj):
         following_users = obj.following_set.all()
         return [user.uname for user in following_users]
