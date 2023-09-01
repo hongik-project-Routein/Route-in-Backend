@@ -39,14 +39,18 @@ def google_callback(request):
     """
     try:  # 기존에 가입된 유저의 Provider가 google이 아니면 에러 발생, 맞으면 로그인
         user = User.objects.get(email=email)
-        # # 다른 SNS로 가입된 유저
-        # social_user = SocialAccount.objects.get(user=user)
-        # if social_user is None:
-        #     return JsonResponse({'err_msg': 'email exists but not social user'},
-        #                         status=status.HTTP_400_BAD_REQUEST)
-        # if social_user.provider != 'google':
-        #     return JsonResponse({'err_msg': 'no matching social type'},
-        #                         status=status.HTTP_400_BAD_REQUEST)
+
+
+        # 다른 SNS로 가입된 유저
+        social_user = SocialAccount.objects.get(user=user)
+        if social_user is None:
+            return JsonResponse({'err_msg': 'email exists but not social user'},
+                                status=status.HTTP_400_BAD_REQUEST)
+        if social_user.provider != 'google':
+            return JsonResponse({'err_msg': 'no matching social type'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+
         data = {'access_token': access_token}
         accept = requests.post(
             f"{BASE_URL}accounts/google/login/finish/", data=data)
@@ -107,10 +111,10 @@ def kakao_callback(request):
         "https://kapi.kakao.com/v2/user/me", headers={"Authorization": f"Bearer {access_token}"})
     profile_json = profile_request.json()
     kakao_account = profile_json.get('kakao_account')
-    """
-    kakao_account에서 이메일 외에 카카오톡 프로필 이미지, 배경 이미지 url 가져올 수 있음
-    """
-    email = kakao_account.get('email')
+    email = kakao_account.get('email', None)
+
+    if email is None:
+        return JsonResponse({'err_msg': 'failed to get email'}, status=status.HTTP_400_BAD_REQUEST)
 
     """
     Signup or Signin Request
@@ -118,13 +122,15 @@ def kakao_callback(request):
     try:
         user = User.objects.get(email=email)
         # 기존에 가입된 유저의 Provider가 kakao가 아니면 에러 발생, 맞으면 로그인
+
         # 다른 SNS로 가입된 유저
         social_user = SocialAccount.objects.get(user=user)
         if social_user is None:
             return JsonResponse({'err_msg': 'email exists but not social user'}, status=status.HTTP_400_BAD_REQUEST)
         if social_user.provider != 'kakao':
             return JsonResponse({'err_msg': 'no matching social type'}, status=status.HTTP_400_BAD_REQUEST)
-        # 기존에 Google로 가입된 유저
+
+        # 기존에 Kakao로 가입된 유저
         data = {'access_token': access_token}
         accept = requests.post(
             f"{BASE_URL}accounts/kakao/login/finish/", data=data)
@@ -132,32 +138,6 @@ def kakao_callback(request):
         if accept_status != 200:
             return JsonResponse({'err_msg': 'failed to signin'}, status=accept_status)
         accept_json = accept.json()
-
-        # name, uname, image, email, age, gender, follower_set, following_set 포함
-        user = User.objects.get(email=email)
-        # user_info = {
-        #     'name': user.name,
-        #     'uname': user.uname,
-        #     'image': user.image if user.image else None,
-        #     'email': user.email,
-        #     'age': user.age,
-        #     'gender': user.gender,
-        #     'follower_set': user.follower_set,
-        #     'following_set': user.following_set,
-        # }
-        # accept_json['user_info'] = user_info
-        accept_json['name'] = user.name
-        accept_json['uname'] = user.uname
-        accept_json['image'] = user.image.url if user.image else None
-        accept_json['email'] = user.email
-        accept_json['age'] = user.age
-        accept_json['gender'] = user.gender
-        accept_json['follower_set'] = user.follower_set
-        accept_json['following_set'] = user.following_set
-
-        accept_json.pop('user', None)
-
-        return JsonResponse(accept_json)
 
     except User.DoesNotExist:
         # 기존에 가입된 유저가 없으면 새로 가입
@@ -167,32 +147,27 @@ def kakao_callback(request):
         accept_status = accept.status_code
         if accept_status != 200:
             return JsonResponse({'err_msg': 'failed to signup'}, status=accept_status)
-        # user의 pk, email, first name, last name과 Access Token, Refresh token 가져옴
         accept_json = accept.json()
 
-        # name, uname, image, email, age, gender, follower_set, following_set 포함
-        user = User.objects.get(email=email)
-        # user_info = {
-        #     'name': user.name,
-        #     'uname': user.uname,
-        #     'image': user.image if user.image else None,
-        #     'email': user.email,
-        #     'age': user.age,
-        #     'gender': user.gender,
-        #     'follower_set': user.follower_set,
-        #     'following_set': user.following_set,
-        # }
-        # accept_json['user_info'] = user_info
-        accept_json['name'] = user.name
-        accept_json['uname'] = user.uname
-        accept_json['image'] = user.image.url if user.image else None
-        accept_json['email'] = user.email
-        accept_json['age'] = user.age
-        accept_json['gender'] = user.gender
-        accept_json['follower_set'] = user.follower_set
-        accept_json['following_set'] = user.following_set
+    user = User.objects.get(email=email)
+    accept_json['name'] = user.name
+    accept_json['uname'] = user.uname
+    # 이미지 경로를 절대 URL로 생성
+    image_url = None
+    if user.image:
+        image_url = request.build_absolute_uri(user.image.url)
+    else:
+        image_url = None
+    accept_json['image'] = image_url
+    accept_json['email'] = user.email
+    accept_json['age'] = user.age
+    accept_json['gender'] = user.gender
+    accept_json['follower_set'] = list(user.follower_set.values_list('uname', flat=True))
+    accept_json['following_set'] = list(user.following_set.values_list('uname', flat=True))
 
-        return JsonResponse(accept_json)
+    accept_json.pop('user', None)
+
+    return JsonResponse(accept_json)
 
 
 class KakaoLogin(SocialLoginView):

@@ -9,7 +9,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password, **extra_fields):
-        if not email: # email 없을 시 error
+        if not email:  # email 없을 시 error
             raise ValueError('must have user email')
 
         email = self.normalize_email(email)
