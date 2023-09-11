@@ -166,8 +166,10 @@ Route_in/Route_in_DB.py
 _media/
 media/
 
-# Sentiment Analysis
-sentiment_analysis/
+# Data
+data/
+*.pickle
+*.h5
 
 # Secret Keys
 secretKeys.py
