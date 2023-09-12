@@ -188,14 +188,14 @@ all_df.drop_duplicates(subset = ['clean_review'], inplace = True)
 학습용, 테스트용 데이터셋 분리
 '''
 train, test = train_test_split(all_df, test_size=0.2, random_state=210617)
-# print('훈련용 리뷰의 개수 :', len(train))
-# print('테스트용 리뷰의 개수 :', len(test))
-# print('-' * 40)
+print('훈련용 리뷰의 개수 :', len(train))
+print('테스트용 리뷰의 개수 :', len(test))
+print('-' * 40)
 
 # 학습용 데이터셋 라벨 분포 확인
 train['sentiment_score'].value_counts().plot(kind='bar')
-# print(train.groupby('sentiment_score').size().reset_index(name='count'))
-# print('-' * 40)
+print(train.groupby('sentiment_score').size().reset_index(name='count'))
+print('-' * 40)
 
 
 '''
@@ -287,30 +287,30 @@ t_test1 = tokenizer.texts_to_sequences(test_list)
 s_train = train['sentiment_score']
 s_test = test['sentiment_score']
 
-# print('문장의 최대 길이 :', max(len(l) for l in t_train1))
-# print('문장의 평균 길이 :', sum(map(len, t_train1)) / len(t_train1))
-# print('-' * 40)
+print('문장의 최대 길이 :', max(len(l) for l in t_train1))
+print('문장의 평균 길이 :', sum(map(len, t_train1)) / len(t_train1))
+print('-' * 40)
 
-# # 히스토그램이 잘 출력이 안됨 WTF
-# plt.hist([len(s) for s in t_train1], bins=50)
-# plt.xlabel('length of samples')
-# plt.ylabel('number of samples')
-# plt.show()
+# 히스토그램이 잘 출력이 안됨 WTF
+plt.hist([len(s) for s in t_train1], bins=50)
+plt.xlabel('length of samples')
+plt.ylabel('number of samples')
+plt.show()
 
 
 '''
 문장 패딩
 '''
-# def below_threshold_len(max_len, nested_list):
-#     cnt = 0
-#     for s in nested_list:
-#         if (len(s) <= max_len):
-#             cnt = cnt + 1
-#     print('전체 샘플 중 길이가 %s 이하인 샘플의 비율: %s' % (max_len, (cnt / len(nested_list)) * 100))
-#     print('-' * 40)
-#
+def below_threshold_len(max_len, nested_list):
+    cnt = 0
+    for s in nested_list:
+        if (len(s) <= max_len):
+            cnt = cnt + 1
+    print('전체 샘플 중 길이가 %s 이하인 샘플의 비율: %s' % (max_len, (cnt / len(nested_list)) * 100))
+    print('-' * 40)
+
 max_len = 54
-# below_threshold_len(max_len, t_train1)
+below_threshold_len(max_len, t_train1)
 # 전체 샘플 중 길이가 54 이하인 샘플의 비율: 99.31456945532915
 # 길이를 길게 잡을 경우 학습에 시간이 오래걸리기 때문에, 가장 데이터손실이 적으면서도 학습시간을 줄일 수 있도록
 # 전체의 99.31%를 포함하도록 문장길이를 54로 설정했음
@@ -323,35 +323,35 @@ t_test2 = pad_sequences(t_test1, maxlen=max_len)
 Sequential 모델 생성
 '''
 
-# model = Sequential()
-# vocab_size = total_cnt + 1
-# model.add(Embedding(vocab_size, 100))  # 100차원의 임베딩 사용
-# model.add(LSTM(128, return_sequences=True))  # 레이어 128개의 LSTM 유닛, 시퀀스 예측을 위해 return_sequences=True
-# model.add(Dropout(0.5))  # 레이어 과적합을 방지하기 위해 50%의 드롭아웃 적용
-# model.add(GRU(128))  # 레이어 128개의 GRU 유닛 사용
-# model.add(Dropout(0.5))  # 레이어 과적합을 방지하기 위해 50%의 드롭아웃 적용
-# model.add(Dense(1, activation='sigmoid'))  # 이진분류를 위한 Dense 레이어 추가, 활성화 함수 sigmoid 사용
-#
-# # 모델 구조 요약하여 표시
-# model.summary()
-#
-# # 검증 손실(val_loss) 모니터링, 손실이 4번 연속으로 개선되지 않으면 학습 중단
-# es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=4)
-# # 검증 정확도(val_acc) 모니터링, 모델의 최상 가중치 저장
-# mc = ModelCheckpoint('bilstm2.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
-#
-#
-# '''
-# 모델 컴파일
-# '''
-# # 옵티마이저, 손실함수, 평가 메트릭 지정
-# model.compile(optimizer='adam', loss='mse', metrics=['acc'])
-#
-#
-# '''
-# 모델 훈련
-# '''
-# history = model.fit(t_train2, s_train, epochs=2, callbacks=[es, mc], batch_size=6000, validation_split=0.2)
+model = Sequential()
+vocab_size = total_cnt + 1
+model.add(Embedding(vocab_size, 100))  # 100차원의 임베딩 사용
+model.add(LSTM(128, return_sequences=True))  # 레이어 128개의 LSTM 유닛, 시퀀스 예측을 위해 return_sequences=True
+model.add(Dropout(0.5))  # 레이어 과적합을 방지하기 위해 50%의 드롭아웃 적용
+model.add(GRU(128))  # 레이어 128개의 GRU 유닛 사용
+model.add(Dropout(0.5))  # 레이어 과적합을 방지하기 위해 50%의 드롭아웃 적용
+model.add(Dense(1, activation='sigmoid'))  # 이진분류를 위한 Dense 레이어 추가, 활성화 함수 sigmoid 사용
+
+# 모델 구조 요약하여 표시
+model.summary()
+
+# 검증 손실(val_loss) 모니터링, 손실이 4번 연속으로 개선되지 않으면 학습 중단
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=4)
+# 검증 정확도(val_acc) 모니터링, 모델의 최상 가중치 저장
+mc = ModelCheckpoint('bilstm2.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
+
+
+'''
+모델 컴파일
+'''
+# 옵티마이저, 손실함수, 평가 메트릭 지정
+model.compile(optimizer='adam', loss='mse', metrics=['acc'])
+
+
+'''
+모델 훈련
+'''
+history = model.fit(t_train2, s_train, epochs=2, callbacks=[es, mc], batch_size=6000, validation_split=0.2)
 
 
 loaded_model = load_model('bilstm2.h5')

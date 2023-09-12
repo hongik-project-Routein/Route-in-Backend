@@ -7,6 +7,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.response import Response
 from .serializers import *
 from socialmedia.models import Post, Pin, Comment, Hashtag
+#from sentiment_analysis.recommend import analysis
 
 
 # User List
@@ -117,6 +118,15 @@ api/post/create/
 '''
 class PostCreateAPIView(CreateAPIView):
     def perform_create(self, serializer):
+
+        # 모든 핀들에 대해 content 가져와서 score 얻기 & [uname, mapID, score] 단일 테이블에 add
+        pin = []
+        pins_content0 = self.request.data.get('pins[0]content')
+
+        pin.append(pins_content0)
+        for p in pin:
+            scores.append(analysis(content))
+
         serializer.save(writer=self.request.user)
 
     def create(self, request, *args, **kwargs):
