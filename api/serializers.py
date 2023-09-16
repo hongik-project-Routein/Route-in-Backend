@@ -170,7 +170,7 @@ class PostUpdateSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     writer_image = serializers.ImageField(source='writer.image', required=False)
     writer = serializers.ReadOnlyField(source='writer.uname')
-    like_users = serializers.StringRelatedField(many=True)
+    like_users = serializers.StringRelatedField(many=True, required=False)
     like_count = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     tagged_users = serializers.StringRelatedField(many=True)

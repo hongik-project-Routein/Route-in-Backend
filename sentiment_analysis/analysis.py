@@ -25,10 +25,11 @@ def sentiment_analysis(new_sentence):
 
     score = float(loaded_model.predict(pad_new))  # 예측
     print('점수: ', score)
-    print('감정점수: ', 0 if score < 0.5 else 1)
     print()
 
+while 1:
+    str = input('입력 >>  ')
+    if not str: break
 
-sentiment_analysis('요트는 처음 타봤는데 너무 시원하고 좋았어요 ㅎㅎ')
-sentiment_analysis('신축이라 그런지 시설이 넓고 깨끗했다!')
-sentiment_analysis('음 맛있기는 했는데 알바생 태도가 영.. 다시 올 일은 없을듯 ^^')
+    sentiment_analysis(str)
+

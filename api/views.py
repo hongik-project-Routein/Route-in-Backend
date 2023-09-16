@@ -296,13 +296,13 @@ class PostTagListAPIView(APIView):
 
 '''
 특정 게시글 사용자 태그(POST)
-api/post/<int:pk>/tag/<int:user_id>
+api/post/<int:pk>/tag/<str:uname>
 '''
 class PostTagAPIView(APIView):
-    def post(self, request, pk, user_id):
+    def post(self, request, pk, uname):
         post = get_object_or_404(Post, pk=pk)
         try:
-            user = User.objects.get(id=user_id)
+            user = User.objects.get(uname=uname)
         except:
             return Response('태그 실패: 해당 유저를 찾을 수 없음', status=status.HTTP_404_NOT_FOUND)
 

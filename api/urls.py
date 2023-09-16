@@ -29,7 +29,7 @@ urlpatterns = [
     # 특정 게시글 태그된 사용자 목록(GET)
     path('post/<int:pk>/tag/', views.PostTagListAPIView.as_view(), name='post-tag-list'),
     # 특정 게시글 사용자 태그(POST)
-    path('post/<int:pk>/tag/<int:user_id>/', views.PostTagAPIView.as_view(), name='post-tag'),
+    path('post/<int:pk>/tag/<str:uname>/', views.PostTagAPIView.as_view(), name='post-tag'),
     # 새로운 게시글 생성(POST)
     path('post/create/', views.PostCreateAPIView.as_view(), name='post-create'),
     # 특정 게시글 수정(PUT): 구현 중
