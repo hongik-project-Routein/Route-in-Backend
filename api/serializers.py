@@ -124,10 +124,6 @@ class PinSerializer(serializers.ModelSerializer):
 class PostCreateSerializer(serializers.ModelSerializer):
     pins = PinSerializer(many=True)
 
-    class Meta:
-        model = Post
-        fields = ['content', 'pins']
-
     def create(self, validated_data):
         pins_data = validated_data.pop('pins')
         post = Post.objects.create(**validated_data)
@@ -141,6 +137,10 @@ class PostCreateSerializer(serializers.ModelSerializer):
             pin.image.save(image_data.name, image_data, save=True)
 
         return post
+
+    class Meta:
+        model = Post
+        fields = ['content', 'pins']
 
 
 class PostUpdateSerializer(serializers.ModelSerializer):

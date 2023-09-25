@@ -103,7 +103,6 @@ def kakao_callback(request):
        Get Access Token From Frontend
     """
     access_token = request.headers.get('Authorization')[7:]
-
     """
     Email Request
     """

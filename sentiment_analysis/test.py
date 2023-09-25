@@ -351,7 +351,7 @@ model.compile(optimizer='adam', loss='mse', metrics=['acc'])
 '''
 모델 훈련
 '''
-history = model.fit(t_train2, s_train, epochs=2, callbacks=[es, mc], batch_size=6000, validation_split=0.2)
+history = model.fit(t_train2, s_train, epochs=3, callbacks=[es, mc], batch_size=6000, validation_split=0.2)
 
 
 loaded_model = load_model('bilstm2.h5')

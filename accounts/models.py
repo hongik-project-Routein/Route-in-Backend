@@ -60,6 +60,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     joined_at = models.DateTimeField(auto_now_add=True)
 
     following_set = models.ManyToManyField('self', symmetrical=False, related_name='follower_set', blank=True)
+    sim_users = models.ManyToManyField('self', symmetrical=False, blank=True)
 
     objects = UserManager()
     USERNAME_FIELD = 'email'

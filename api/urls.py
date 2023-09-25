@@ -11,7 +11,7 @@ urlpatterns = [
     path('user/uname_check/<str:uname>/', views.UnameUniqueCheck.as_view(), name='uname-unique-check'),
     # 특정 유저 상세(GET)
     path('user/<str:uname>/', views.UserRetrieveAPIView.as_view(), name='user-retrieve'),
-    # 특정 사용자 팔로우(POST)
+    # 특정 유저 팔로우(POST)
     path('user/<str:uname>/follow/', views.UserFollowAPIView.as_view(), name='user-follow'),
     # 특정 유저 북마크 게시글 목록(GET)
     path('user/<str:uname>/bookmark/', views.UserBookmarkListAPIView.as_view(), name='user-bookmark'),
@@ -32,7 +32,7 @@ urlpatterns = [
     path('post/<int:pk>/tag/<str:uname>/', views.PostTagAPIView.as_view(), name='post-tag'),
     # 새로운 게시글 생성(POST)
     path('post/create/', views.PostCreateAPIView.as_view(), name='post-create'),
-    # 특정 게시글 수정(PUT): 구현 중
+    # 특정 게시글 수정(PUT)
     path('post/<int:pk>/update/', views.PostUpdateAPIView.as_view(), name='post-update'),
 
     # 전체 핀 목록
@@ -46,13 +46,18 @@ urlpatterns = [
     path('comment/<int:pk>/', views.CommentRetrieveAPIView.as_view(), name='comment-retrieve'),
     # 특정 댓글 좋아요(POST, GET)
     path('comment/<int:pk>/like/', views.CommentLikeAPIView.as_view(), name='comment-like'),
-    # 특정 댓글 태그된 사용자 목록(GET): 미구현
+    # 특정 댓글 태그된 사용자 목록(GET)
     path('comment/<int:pk>/tag/', views.CommentTagListAPIView.as_view(), name='comment-tag-list'),
-    # 특정 댓글 사용자 태그(POST): 미구현
+    # 특정 댓글 사용자 태그(POST)
     path('comment/<int:pk>/tag/<int:user_id>/', views.CommentTagAPIView.as_view(), name='comment-tag'),
 
-    # 전체 해시태그 목록: 미구현
+    # 전체 해시태그 목록
     path('hashtag/', views.HashtagListAPIView.as_view(), name='hashtag-list'),
-    # 특정 해시태그 상세: 미구현
+    # 특정 해시태그 상세
     path('hashtag/<int:pk>/', views.HashtagRetrieveAPIView.as_view(), name='hashtag-retrieve'),
+
+    # 게시글 추천(GET)
+    path('recommend/post/', views.PostRecommendListAPIView.as_view(), name='post-recommend'),
+    # 유사한 유저 추천(GET)
+    path('recommend/user/', views.UserRecommendListAPIView.as_view(), name='user-recommend'),
 ]

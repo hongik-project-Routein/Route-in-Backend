@@ -7,8 +7,15 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.response import Response
 from .serializers import *
 from socialmedia.models import Post, Pin, Comment, Hashtag
-#from sentiment_analysis.recommend import analysis
-
+from sentiment_analysis.analysis import get_score
+from sentiment_analysis.save_to_bq import save_sa
+from sentiment_analysis.find_similar_user_pd import *
+from recommend_system.recommend import get_place
+from django.http import HttpResponse
+from dj_rest_auth.registration.views import RegisterView
+from dj_rest_auth.views import LoginView
+from dj_rest_auth.app_settings import api_settings
+from django.utils import timezone
 
 # User List
 class UserListAPIView(ListAPIView):
@@ -118,16 +125,26 @@ api/post/create/
 '''
 class PostCreateAPIView(CreateAPIView):
     def perform_create(self, serializer):
+        writer = self.request.user
+        serializer.save(writer=writer)
 
-        # 모든 핀들에 대해 content 가져와서 score 얻기 & [uname, mapID, score] 단일 테이블에 add
-        pin = []
-        pins_content0 = self.request.data.get('pins[0]content')
+        # [[uname, mapID, score], ...] 2차원 리스트 sentiList
+        sentiList = []
+        for pin in serializer.data['pins']:
+            uname = writer.uname
+            mapID = pin['mapID']
+            content = pin['content']
+            # 본문 감정 분석
+            score = get_score(content)
+            sentiList.append([uname, mapID, score])
 
-        pin.append(pins_content0)
-        for p in pin:
-            scores.append(analysis(content))
+        # 장소에 대한 긍/부정 점수 저장
+        save_sa(sentiLlist)
 
-        serializer.save(writer=self.request.user)
+        # 유사한 사용자 찾기
+        user = get_object_or_404(User, uname=writer.uname)
+        user.sim_users = find_sim_users(user.uname, pi_pd_df)
+        user.save()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -476,10 +493,122 @@ class InitialSettingAPIView(APIView):
 api/user/<str:uname>/bookmark/
 '''
 class UserBookmarkListAPIView(PostListAPIView):
-
     def get_queryset(self):
         uname = self.kwargs['uname']
         user = User.objects.get(uname=uname)
         bookmarked_posts = user.bookmark_posts.filter(is_deleted=False)
 
         return bookmarked_posts
+
+
+'''
+게시글 추천 (GET)
+api/recommend/post/
+'''
+class PostRecommendListAPIView(PostListAPIView):
+    def get_queryset(self):
+        uname = self.kwargs['uname']
+        user = User.objects.get(uname=uname)
+        recomm_posts = get_place(user.sim_users, user)
+
+        return recomm_posts
+
+
+'''
+유사한 유저 추천 (GET)
+api/recommend/user/
+'''
+class UserRecommendListAPIView(PostListAPIView):
+    def get_queryset(self):
+        uname = self.kwargs['uname']
+        recomm_users = find_sim_users(uname, pi_pd_df)
+
+        return recomm_users
+
+
+'''
+일반 사용자 가입
+~~/
+'''
+class CustomRegisterView(RegisterView):
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        if response.status_code == status.HTTP_201_CREATED:
+            return Response('회원가입 성공', status=status.HTTP_201_CREATED)
+        else:
+            return Response('회원가입 실패', status=status.HTTP_400_BAD_REQUEST)
+
+'''
+일반 사용자 로그인
+'''
+class CustomLoginView(LoginView):
+    # def get_response(self, image_url):
+    #     serializer_class = self.get_response_serializer()
+    #
+    #     if api_settings.USE_JWT:
+    #         from rest_framework_simplejwt.settings import (
+    #             api_settings as jwt_settings,
+    #         )
+    #         access_token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
+    #         refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
+    #         return_expiration_times = api_settings.JWT_AUTH_RETURN_EXPIRATION
+    #         auth_httponly = api_settings.JWT_AUTH_HTTPONLY
+    #
+    #         data = {
+    #             'user': self.user,
+    #             'access': self.access_token,
+    #         }
+    #
+    #         if not auth_httponly:
+    #             data['refresh'] = self.refresh_token
+    #         else:
+    #             data['refresh'] = ""
+    #
+    #         if return_expiration_times:
+    #             data['access_expiration'] = access_token_expiration
+    #             data['refresh_expiration'] = refresh_token_expiration
+    #
+    #         user = self.user
+    #         data['user_info'] = {
+    #             "name": user.name,
+    #             "uname": user.uname,
+    #             "image": image_url,
+    #             "email": user.email,
+    #             "age": user.age,
+    #             "gender": user.gender,
+    #             "follower_set": user.follower_set,
+    #             "following_set": user.following_set
+    #         }
+    #         serializer = serializer_class(
+    #             instance=data,
+    #             context=self.get_serializer_context(),
+    #         )
+    #     elif self.token:
+    #         serializer = serializer_class(
+    #             instance=self.token,
+    #             context=self.get_serializer_context(),
+    #         )
+    #     else:
+    #         return Response(status=status.HTTP_204_NO_CONTENT)
+    #
+    #     response = Response(serializer.data, status=status.HTTP_200_OK)
+    #     if api_settings.USE_JWT:
+    #         from dj_rest_auth.jwt_auth import set_jwt_cookies
+    #         set_jwt_cookies(response, self.access_token, self.refresh_token)
+    #     print(serializer.data)
+    #     return response
+    #
+    # def post(self, request, *args, **kwargs):
+    #     self.request = request
+    #     self.serializer = self.get_serializer(data=self.request.data)
+    #     self.serializer.is_valid(raise_exception=True)
+    #
+    #     self.login()
+    #
+    #     user = request.user
+    #     if user.image:
+    #         image_url = request.build_absolute_uri(user.image.url)
+    #     else:
+    #         image_url = None
+    #     return self.get_response(image_url)
+    pass
