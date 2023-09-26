@@ -71,7 +71,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['uname', 'id', 'last_login', 'email', 'name', 'introduction', 'age', 'gender', 'image', 'following_set', 'follower_set', 'post_set']
+        fields = ['uname', 'id', 'last_login', 'email', 'name', 'introduction', 'age', 'gender', 'image', 'following_set', 'follower_set', 'writed_posts']
 
 
 class PostLikeSerializer(serializers.ModelSerializer):
@@ -237,7 +237,7 @@ class UserRetrieveSerializer(serializers.ModelSerializer):
     follower_set = serializers.SerializerMethodField()
 
     def get_post_set(self, obj):
-        posts = obj.post_set.filter(is_deleted=False)
+        posts = obj.writed_posts.filter(is_deleted=False)
         post_data = []
         for post in posts:
             post_data.append({
