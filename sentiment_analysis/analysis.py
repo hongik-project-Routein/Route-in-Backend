@@ -27,6 +27,4 @@ def get_score(new_sentence):
     pad_new = pad_sequences(encoded, maxlen=max_len)  # 패딩
 
     score = float(loaded_model.predict(pad_new))  # 예측
-    return format(score, '.2f')
-
-print(get_score('괜찮았다'))
+    return score

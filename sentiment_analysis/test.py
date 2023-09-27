@@ -121,8 +121,8 @@ warnings.filterwarnings('ignore')
 # 그래프 설정
 # plt.rcParams['font.family'] = 'Malgun Gothic'
 plt.rcParams['font.family'] = 'AppleGothic'
-plt.rcParams['font.size'] = 14
-plt.rcParams['figure.figsize'] = 12, 8
+plt.rcParams['font.size'] = 20
+plt.rcParams['figure.figsize'] = 16, 10
 plt.rcParams['axes.unicode_minus'] = False
 
 '''
@@ -153,7 +153,7 @@ df2.drop("origin_reivew", axis=1, inplace=True)
 df2.rename(columns={"sentiment_int": "sentiment_score"}, inplace=True)
 df2 = df2[['clean_review', 'sentiment_score']]
 
-# 세번째 데이터셋(naver_shopping) 전처리
+# 세번째 데이터셋(naver_shopping_review) 전처리
 urllib.request.urlretrieve("https://raw.githubusercontent.com/bab2min/corpus/master/sentiment/naver_shopping.txt", filename="../data/shop_rating.txt")
 shop_df = pd.read_table('../data/shop_rating.txt', names=['ratings', 'origin_reivew'])
 shop_df.drop_duplicates(subset=['origin_reivew'], inplace=True) # 중복제거
@@ -162,7 +162,7 @@ shop_df.drop("origin_reivew", axis=1, inplace=True)
 shop_df['sentiment_score'] = shop_df['ratings'].apply(lambda x: 0 if x <= 3 else 1) # 리뷰점수 3 이하는 부정(0)으로, 4이상은 긍정(1)
 shop_df = shop_df[['clean_review', 'sentiment_score']]
 
-# 네번째, 다섯번째 데이터셋(ratings_train, ratings_test) 전처리
+# 네번째, 다섯번째 데이터셋(ratings_test, ratings_train) 전처리
 urllib.request.urlretrieve("https://raw.githubusercontent.com/e9t/nsmc/master/ratings_train.txt", filename="../data/ratings_train.txt")
 urllib.request.urlretrieve("https://raw.githubusercontent.com/e9t/nsmc/master/ratings_test.txt", filename="../data/ratings_test.txt")
 movie_df1 = pd.read_table("../data/ratings_train.txt")
@@ -188,14 +188,18 @@ all_df.drop_duplicates(subset = ['clean_review'], inplace = True)
 학습용, 테스트용 데이터셋 분리
 '''
 train, test = train_test_split(all_df, test_size=0.2, random_state=210617)
-print('훈련용 리뷰의 개수 :', len(train))
-print('테스트용 리뷰의 개수 :', len(test))
-print('-' * 40)
+print('학습용 문장의 개수 :', len(train))
+print('테스트용 문장의 개수 :', len(test))
+print('-' * 60)
 
 # 학습용 데이터셋 라벨 분포 확인
 train['sentiment_score'].value_counts().plot(kind='bar')
 print(train.groupby('sentiment_score').size().reset_index(name='count'))
-print('-' * 40)
+plt.hist([s for s in train['sentiment_score']], bins=2, rwidth=0.5, orientation='horizontal')
+plt.xlabel('sentiment score')
+plt.ylabel('number of samples')
+plt.show()
+print('-' * 60)
 
 
 '''
@@ -205,9 +209,6 @@ stopwords = ['도', '는', '다', '의', '가', '이', '은', '한', '에', '하
              '임', '게']
 
 mecab = Mecab()
-tokens = mecab.morphs("하란 교수님 만세")
-print('MECAB 형태소 분석: ', tokens)
-print('-' * 40)
 
 train_list = []
 test_list = []
@@ -243,13 +244,6 @@ pickle
 with open("all_reviews.pickle", "wb") as fw:
     pickle.dump(tokenizer, fw)
 
-# # 불러오기
-# with open("all_reviews.pickle", "rb") as fr:
-#     tokenizer = pickle.load(fr)
-# train_list = []
-# test_list = []
-# tokenizer.fit_on_texts(train_list)
-# tokenizer.fit_on_texts(test_list)
 
 '''
 단어 등장 빈도 수 체크
@@ -269,16 +263,13 @@ for key, value in tokenizer.word_counts.items():
         rare_cnt = rare_cnt + 1
         rare_freq = rare_freq + value
 
-print('단어 집합(vocabulary)의 크기 :', total_cnt)
+print('단어 집합(vocabulary)의 크기:', total_cnt)
 print('등장 빈도가 %s번 이하인 희귀 단어의 수: %s' % (threshold - 1, rare_cnt))
 print("단어 집합에서 희귀 단어의 비율:", (rare_cnt / total_cnt) * 100)
 print("전체 등장 빈도에서 희귀 단어 등장 빈도 비율:", (rare_freq / total_freq) * 100)
-print('-' * 40)
+print('-' * 60)
 
 
-'''
-~
-'''
 # 단어로 쪼개진 문장 숫자로 변환
 t_train1 = tokenizer.texts_to_sequences(train_list)
 t_test1 = tokenizer.texts_to_sequences(test_list)
@@ -287,12 +278,11 @@ t_test1 = tokenizer.texts_to_sequences(test_list)
 s_train = train['sentiment_score']
 s_test = test['sentiment_score']
 
-print('문장의 최대 길이 :', max(len(l) for l in t_train1))
-print('문장의 평균 길이 :', sum(map(len, t_train1)) / len(t_train1))
-print('-' * 40)
+print('문장의 최대 길이(단어의 수) :', max(len(l) for l in t_train1))
+print('문장의 평균 길이(단어의 수) :', sum(map(len, t_train1)) / len(t_train1))
+print('-' * 60)
 
-# 히스토그램이 잘 출력이 안됨 WTF
-plt.hist([len(s) for s in t_train1], bins=50)
+plt.hist([len(s) for s in t_train1], bins=80)
 plt.xlabel('length of samples')
 plt.ylabel('number of samples')
 plt.show()
@@ -307,7 +297,7 @@ def below_threshold_len(max_len, nested_list):
         if (len(s) <= max_len):
             cnt = cnt + 1
     print('전체 샘플 중 길이가 %s 이하인 샘플의 비율: %s' % (max_len, (cnt / len(nested_list)) * 100))
-    print('-' * 40)
+    print('-' * 60)
 
 max_len = 54
 below_threshold_len(max_len, t_train1)
@@ -348,11 +338,11 @@ mc = ModelCheckpoint('bilstm2.h5', monitor='val_acc', mode='max', verbose=1, sav
 model.compile(optimizer='adam', loss='mse', metrics=['acc'])
 
 
-'''
-모델 훈련
-'''
-history = model.fit(t_train2, s_train, epochs=3, callbacks=[es, mc], batch_size=6000, validation_split=0.2)
-
-
-loaded_model = load_model('bilstm2.h5')
-print("\n테스트 정확도: %.4f" % (loaded_model.evaluate(t_test2, s_test)[1]))
+# '''
+# 모델 훈련
+# '''
+# history = model.fit(t_train2, s_train, epochs=3, callbacks=[es, mc], batch_size=6000, validation_split=0.2)
+#
+#
+# loaded_model = load_model('bilstm2.h5')
+# print("\n테스트 정확도: %.4f" % (loaded_model.evaluate(t_test2, s_test)[1]))

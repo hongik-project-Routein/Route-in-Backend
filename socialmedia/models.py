@@ -51,7 +51,7 @@ class Hashtag(models.Model):
 
 # Post
 class Post(BaseModel):
-    writer = models.ForeignKey(User, related_name='post_set', on_delete=models.CASCADE, )
+    writer = models.ForeignKey(User, related_name='writed_posts', on_delete=models.CASCADE, )
     content = models.TextField('CONTENT', max_length=200, blank=True)
     like_users = models.ManyToManyField(User, related_name='like_posts', blank=True)
     bookmark_users = models.ManyToManyField(User, related_name='bookmark_posts', blank=True)
@@ -97,6 +97,3 @@ class Comment(BaseModel):
 
     def __str__(self):
         return f'{self.post}) {self.writer}: {self.content[:10]}' or ''
-
-
-

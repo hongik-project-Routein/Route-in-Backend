@@ -21,6 +21,9 @@ from django.utils import timezone
 class UserListAPIView(ListAPIView):
     queryset = User.objects.all().order_by('joined_at')
     serializer_class = UserSerializer
+    pagination_class = PageNumberPagination
+    filter_backends = [SearchFilter]
+    search_fields = ['uname']
 
 
 '''
@@ -98,8 +101,7 @@ class PostListAPIView(ListAPIView):
     serializer_class = PostListSerializer
     pagination_class = PageNumberPagination
     filter_backends = [SearchFilter]
-    search_fields = ['content']
-    # search_fields = ['hashtags']
+    search_fields = ['hashtags']
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -139,11 +141,14 @@ class PostCreateAPIView(CreateAPIView):
             sentiList.append([uname, mapID, score])
 
         # 장소에 대한 긍/부정 점수 저장
-        save_sa(sentiLlist)
+        save_sa(sentiList)
 
         # 유사한 사용자 찾기
         user = get_object_or_404(User, uname=writer.uname)
-        user.sim_users = find_sim_users(user.uname, pi_pd_df)
+        for sim_user in find_sim_users(user.uname, pi_pd_df):
+            # user_id 찾는 과정
+            new_user = get_object_or_404(User, uname=sim_user)
+            user.sim_users.add(new_user)
         user.save()
 
     def create(self, request, *args, **kwargs):
@@ -341,6 +346,9 @@ class PostTagAPIView(APIView):
 class PinListAPIView(ListCreateAPIView):
     queryset = Pin.objects.filter(is_deleted=False)
     serializer_class = PinSerializer
+    pagination_class = PageNumberPagination
+    filter_backends = [SearchFilter]
+    search_fields = ['pin_hashtag']
 
 
 # Pin Retrieve
@@ -509,9 +517,16 @@ class PostRecommendListAPIView(PostListAPIView):
     def get_queryset(self):
         uname = self.kwargs['uname']
         user = User.objects.get(uname=uname)
-        recomm_posts = get_place(user.sim_users, user)
 
-        return recomm_posts
+        queryset = Post.objects.none()
+        for userID, mapID in get_place(user.sim_users, user):
+            target_user = User.objects.get(uname=userID)
+            user_posts = target_user.writed_posts.filter(is_deleted=False)
+            post = user_posts.filter(pins__mapID=mapID)
+            queryset = queryset.union(post)
+            # queryset.append(post)
+
+        return queryset
 
 
 '''
