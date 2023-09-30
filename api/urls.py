@@ -11,6 +11,8 @@ urlpatterns = [
     path('user/uname_check/<str:uname>/', views.UnameUniqueCheck.as_view(), name='uname-unique-check'),
     # 특정 유저 상세(GET)
     path('user/<str:uname>/', views.UserRetrieveAPIView.as_view(), name='user-retrieve'),
+    # 특정 유저 게시글 목록(GET)
+    path('user/<str:uname>/post/', views.PostListAPIView.as_view(), name='user-retrieve'),
     # 특정 유저 팔로우(POST)
     path('user/<str:uname>/follow/', views.UserFollowAPIView.as_view(), name='user-follow'),
     # 특정 유저 북마크 게시글 목록(GET)

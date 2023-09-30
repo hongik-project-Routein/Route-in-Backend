@@ -345,7 +345,8 @@ class PostTagAPIView(APIView):
 # Pin List + Create
 class PinListAPIView(ListCreateAPIView):
     queryset = Pin.objects.filter(is_deleted=False)
-    serializer_class = PinSerializer
+    # serializer_class = PinSerializer
+    serializer_class = PinSearchSerializer
     pagination_class = PageNumberPagination
     filter_backends = [SearchFilter]
     search_fields = ['pin_hashtag']

@@ -55,7 +55,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'writer', 'content', 'is_liked', 'is_bookmarked', 'hashtags', 'pin_count', 'like_count', 'report_count', 'like_users', 'bookmark_users', 'tagged_users', 'comment_count']
+        fields = ['id', 'writer', 'content', 'is_liked', 'is_bookmarked', 'hashtags', 'pin_count', 'like_count', 'report_count', 'like_users', 'bookmark_users', 'tagged_users', 'comment_count', 'created_at']
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -122,6 +122,30 @@ class PinSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pin
         fields = ['image', 'pin_hashtag', 'content', 'latitude', 'longitude', 'mapID']
+
+
+class PinSearchSerializer(serializers.ModelSerializer):
+    writer_image = serializers.CharField(source='post.writer.image')
+    writer = serializers.CharField(source='post.writer.uname')
+    post_id = serializers.IntegerField(source='post.id')
+    like_users = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
+    is_bookmarked = serializers.SerializerMethodField()
+
+    def get_is_liked(self, obj):
+        user = self.context['request'].user
+        return user in obj.post.like_users.all()
+
+    def get_is_bookmarked(self, obj):
+        user = self.context['request'].user
+        return user in obj.post.bookmark_users.all()
+
+    def get_like_users(self, obj):
+        return [user.uname for user in obj.post.like_users.all()]
+
+    class Meta:
+        model = Pin
+        fields = ['writer_image', 'writer', 'image', 'post_id', 'like_users', 'is_liked', 'is_bookmarked']
 
 
 class PostCreateSerializer(serializers.ModelSerializer):
@@ -193,7 +217,6 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['id', 'writer_image', 'writer', 'content', 'tagged_users', 'created_at', 'updated_at', 'post', 'like_users', 'like_count', 'is_liked']
-
 
 
 class CommentLikeSerializer(serializers.ModelSerializer):
