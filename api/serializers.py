@@ -74,7 +74,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['uname', 'id', 'last_login', 'email', 'name', 'introduction', 'age', 'gender', 'image', 'following_set', 'follower_set', 'sim_users', 'writed_posts']
+        fields = ['uname', 'id', 'last_login', 'email', 'name', 'introduction', 'age', 'gender', 'image', 'following_set', 'follower_set', 'sim_users']
 
 
 class PostLikeSerializer(serializers.ModelSerializer):

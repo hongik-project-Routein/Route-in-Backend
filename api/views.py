@@ -539,6 +539,7 @@ class PostRecommendListAPIView(ListAPIView):
 
     serializer_class = PostListSerializer
 
+
 '''
 유사한 유저 추천 (GET)
 api/recommend/user/
@@ -557,7 +558,7 @@ class UserRecommendListAPIView(ListAPIView):
 
 '''
 일반 사용자 가입
-api/accounts/login/
+api/accounts/registration/
 '''
 class CustomRegisterView(RegisterView):
     def create(self, request, *args, **kwargs):
@@ -569,7 +570,7 @@ class CustomRegisterView(RegisterView):
 
 '''
 일반 사용자 로그인
-api/accounts/registration/
+api/accounts/login/
 '''
 class CustomLoginView(LoginView):
     def custom_response(self, user):
@@ -599,8 +600,8 @@ class CustomLoginView(LoginView):
             response_data = self.custom_response(self.user)
 
             if hasattr(self, 'access_token'):
-                response_data['access_token'] = str(self.access_token)
+                response_data['access'] = str(self.access_token)
             print(response_data)
             return Response(response_data, status=status.HTTP_200_OK)
 
-        return self.get_response()
+        # return self.get_response()
