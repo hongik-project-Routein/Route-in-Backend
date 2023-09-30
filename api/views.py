@@ -16,6 +16,7 @@ from dj_rest_auth.registration.views import RegisterView
 from dj_rest_auth.views import LoginView
 from dj_rest_auth.app_settings import api_settings
 from django.utils import timezone
+from django.http import JsonResponse
 
 # User List
 class UserListAPIView(ListAPIView):
@@ -27,7 +28,7 @@ class UserListAPIView(ListAPIView):
 
 
 '''
-특정 유저 상세(GET): 구현
+특정 유저 상세(GET)
 api/user/<str:uname>/
 '''
 class UserRetrieveAPIView(RetrieveUpdateDestroyAPIView):
@@ -53,7 +54,7 @@ class UserRetrieveAPIView(RetrieveUpdateDestroyAPIView):
 
 
 '''
-특정 사용자 팔로우(POST): 구현
+특정 사용자 팔로우(POST)
 api/user/<str:uname>/follow/
 '''
 class UserFollowAPIView(APIView):
@@ -80,7 +81,7 @@ class UserFollowAPIView(APIView):
 
 
 '''
-uname 중복확인(POST): 구현 중
+uname 중복확인(POST)
 api/user/uname_unique_check/<str:uname>/
 '''
 class UnameUniqueCheck(APIView):
@@ -101,7 +102,7 @@ class PostListAPIView(ListAPIView):
     serializer_class = PostListSerializer
     pagination_class = PageNumberPagination
     filter_backends = [SearchFilter]
-    search_fields = ['hashtags']
+    search_fields = ['content']
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -126,7 +127,7 @@ class PostListAPIView(ListAPIView):
 api/post/create/
 '''
 class PostCreateAPIView(CreateAPIView):
-    def perform_create(self, serializer):
+    def perform_create(self, serializer, user):
         writer = self.request.user
         serializer.save(writer=writer)
 
@@ -144,17 +145,16 @@ class PostCreateAPIView(CreateAPIView):
         save_sa(sentiList)
 
         # 유사한 사용자 찾기
-        user = get_object_or_404(User, uname=writer.uname)
         for sim_user in find_sim_users(user.uname, pi_pd_df):
-            # user_id 찾는 과정
             new_user = get_object_or_404(User, uname=sim_user)
             user.sim_users.add(new_user)
-        user.save()
+            user.save()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        user = request.user
+        self.perform_create(serializer, user)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -508,42 +508,55 @@ class UserBookmarkListAPIView(PostListAPIView):
 
         return bookmarked_posts
 
+    serializer_class = UserSerializer
+
 
 '''
 게시글 추천 (GET)
 api/recommend/post/
 '''
-class PostRecommendListAPIView(PostListAPIView):
+class PostRecommendListAPIView(ListAPIView):
     def get_queryset(self):
-        uname = self.kwargs['uname']
-        user = User.objects.get(uname=uname)
-
+        # user = self.request.user
+        user = get_object_or_404(User, uname='kshkakao')
+        print('target_user: ', user)
         queryset = Post.objects.none()
-        for userID, mapID in get_place(user.sim_users, user):
-            target_user = User.objects.get(uname=userID)
-            user_posts = target_user.writed_posts.filter(is_deleted=False)
-            post = user_posts.filter(pins__mapID=mapID)
-            queryset = queryset.union(post)
-            # queryset.append(post)
+        sim_users = [sim_user.uname for sim_user in user.sim_users.all()]
+        print('sim_users: ', sim_users)
+        getp = get_place(sim_users, user)
+        print('get_place: ', getp)
+        if sim_users:
+            for userID, mapID in getp:
+                target_user = User.objects.get(uname=userID)
+                user_posts = target_user.writed_posts.filter(is_deleted=False)
+                post = user_posts.filter(pins__mapID=mapID)
+                queryset = queryset.union(post)
+        else:
+            print("There is no one in sim_users.")
 
         return queryset
 
+    serializer_class = PostListSerializer
 
 '''
 유사한 유저 추천 (GET)
 api/recommend/user/
 '''
-class UserRecommendListAPIView(PostListAPIView):
+class UserRecommendListAPIView(ListAPIView):
     def get_queryset(self):
-        uname = self.kwargs['uname']
-        recomm_users = find_sim_users(uname, pi_pd_df)
+        # user = self.request.user
+        user = get_object_or_404(User, uname='kshkakao')
+        recom_users = find_sim_users(user.uname, pi_pd_df)
+        queryset = User.objects.filter(uname__in=recom_users)
 
-        return recomm_users
+        return queryset
+
+    serializer_class = UserSerializer
 
 
 '''
 일반 사용자 가입
-~~/
+api/accounts/login/
 '''
 class CustomRegisterView(RegisterView):
     def create(self, request, *args, **kwargs):
@@ -555,75 +568,38 @@ class CustomRegisterView(RegisterView):
 
 '''
 일반 사용자 로그인
+api/accounts/registration/
 '''
 class CustomLoginView(LoginView):
-    # def get_response(self, image_url):
-    #     serializer_class = self.get_response_serializer()
-    #
-    #     if api_settings.USE_JWT:
-    #         from rest_framework_simplejwt.settings import (
-    #             api_settings as jwt_settings,
-    #         )
-    #         access_token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
-    #         refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
-    #         return_expiration_times = api_settings.JWT_AUTH_RETURN_EXPIRATION
-    #         auth_httponly = api_settings.JWT_AUTH_HTTPONLY
-    #
-    #         data = {
-    #             'user': self.user,
-    #             'access': self.access_token,
-    #         }
-    #
-    #         if not auth_httponly:
-    #             data['refresh'] = self.refresh_token
-    #         else:
-    #             data['refresh'] = ""
-    #
-    #         if return_expiration_times:
-    #             data['access_expiration'] = access_token_expiration
-    #             data['refresh_expiration'] = refresh_token_expiration
-    #
-    #         user = self.user
-    #         data['user_info'] = {
-    #             "name": user.name,
-    #             "uname": user.uname,
-    #             "image": image_url,
-    #             "email": user.email,
-    #             "age": user.age,
-    #             "gender": user.gender,
-    #             "follower_set": user.follower_set,
-    #             "following_set": user.following_set
-    #         }
-    #         serializer = serializer_class(
-    #             instance=data,
-    #             context=self.get_serializer_context(),
-    #         )
-    #     elif self.token:
-    #         serializer = serializer_class(
-    #             instance=self.token,
-    #             context=self.get_serializer_context(),
-    #         )
-    #     else:
-    #         return Response(status=status.HTTP_204_NO_CONTENT)
-    #
-    #     response = Response(serializer.data, status=status.HTTP_200_OK)
-    #     if api_settings.USE_JWT:
-    #         from dj_rest_auth.jwt_auth import set_jwt_cookies
-    #         set_jwt_cookies(response, self.access_token, self.refresh_token)
-    #     print(serializer.data)
-    #     return response
-    #
-    # def post(self, request, *args, **kwargs):
-    #     self.request = request
-    #     self.serializer = self.get_serializer(data=self.request.data)
-    #     self.serializer.is_valid(raise_exception=True)
-    #
-    #     self.login()
-    #
-    #     user = request.user
-    #     if user.image:
-    #         image_url = request.build_absolute_uri(user.image.url)
-    #     else:
-    #         image_url = None
-    #     return self.get_response(image_url)
-    pass
+    def custom_response(self, user):
+        response_data = {
+            'name': user.name,
+            'uname': user.uname,
+            'email': user.email,
+            'age': user.age,
+            'gender': user.gender,
+            'follower_set': list(user.follower_set.values_list('uname', flat=True)),
+            'following_set': list(user.following_set.values_list('uname', flat=True)),
+        }
+
+        # 이미지 경로를 절대 URL로 생성
+        image_url = self.request.build_absolute_uri(user.image.url) if user.image else None
+        response_data['image'] = image_url
+        return response_data
+
+    def post(self, request, *args, **kwargs):
+        self.request = request
+        self.serializer = self.get_serializer(data=self.request.data)
+        self.serializer.is_valid(raise_exception=True)
+
+        self.login()
+
+        if self.user:
+            response_data = self.custom_response(self.user)
+
+            if hasattr(self, 'access_token'):
+                response_data['access_token'] = str(self.access_token)
+            print(response_data)
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        return self.get_response()

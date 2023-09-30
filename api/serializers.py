@@ -61,7 +61,7 @@ class PostSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     following_set = serializers.SerializerMethodField()
     follower_set = serializers.SerializerMethodField()
-    image = serializers.ImageField(max_length=None, allow_empty_file=True, use_url=True)
+    sim_users = serializers.SerializerMethodField()
 
     def get_following_set(self, obj):
         return obj.following_set.all().values_list('uname', flat=True)
@@ -69,9 +69,12 @@ class UserSerializer(serializers.ModelSerializer):
     def get_follower_set(self, obj):
         return obj.follower_set.all().values_list('uname', flat=True)
 
+    def get_sim_users(self, obj):
+        return obj.sim_users.all().values_list('uname', flat=True)
+
     class Meta:
         model = User
-        fields = ['uname', 'id', 'last_login', 'email', 'name', 'introduction', 'age', 'gender', 'image', 'following_set', 'follower_set', 'writed_posts']
+        fields = ['uname', 'id', 'last_login', 'email', 'name', 'introduction', 'age', 'gender', 'image', 'following_set', 'follower_set', 'sim_users', 'writed_posts']
 
 
 class PostLikeSerializer(serializers.ModelSerializer):
@@ -235,6 +238,7 @@ class UserRetrieveSerializer(serializers.ModelSerializer):
     post_set = serializers.SerializerMethodField()
     following_set = serializers.SerializerMethodField()
     follower_set = serializers.SerializerMethodField()
+    sim_users = serializers.SerializerMethodField()
 
     def get_post_set(self, obj):
         posts = obj.writed_posts.filter(is_deleted=False)
@@ -256,9 +260,13 @@ class UserRetrieveSerializer(serializers.ModelSerializer):
         follower_users = obj.follower_set.all()
         return [user.uname for user in follower_users]
 
+    def get_sim_users(self, obj):
+        sim_users = obj.sim_users.all()
+        return [user.uname for user in sim_users]
+
     class Meta:
         model = User
-        fields = ['uname', 'id', 'last_login', 'email', 'name', 'introduction', 'age', 'gender', 'image', 'following_set', 'follower_set', 'post_set']
+        fields = ['uname', 'id', 'last_login', 'email', 'name', 'introduction', 'age', 'gender', 'image', 'following_set', 'follower_set', 'sim_users', 'post_set']
 
 
 class InitialSettingSerializer(serializers.ModelSerializer):

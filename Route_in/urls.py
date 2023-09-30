@@ -2,7 +2,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from Route_in import settings
-# from api.views import CustomRegisterView, CustomLoginView
+from api.views import CustomRegisterView, CustomLoginView
 
 
 urlpatterns = [
@@ -10,11 +10,9 @@ urlpatterns = [
 
     path('accounts/', include('accounts.urls')),
     path('accounts/', include('allauth.urls')),
-    # path('api/accounts/login/', CustomLoginView.as_view(), name='custom-login'),
+    path('api/accounts/login/', CustomLoginView.as_view(), name='custom-login'),
+    path('api/accounts/registration/', CustomRegisterView.as_view(), name='custom-reigster'),
     path('api/accounts/', include('dj_rest_auth.urls')),
-    # path('api/accounts/login/', CustomLoginView.as_view(), name='custom-login'),
-    # path('api/accounts/registration/', CustomRegisterView.as_view(), name='custom-reigster'),
-
 
     path('api/', include('api.urls')),
     path('socialmedia/', include('socialmedia.urls')), # no use

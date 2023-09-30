@@ -29,7 +29,6 @@ def find_sim_users(user_id, matrix, k=5):
     # 현재 유저에 대한 데이터프레임 만들기
     # matrix의 index = user_id -> 현재 1명 유저에 대한 평가 정보 찾기
     user = matrix[matrix.index == user_id]
-    print(user)
 
     # matrix index 값이 user_id와 다른가?
     # 일치하지 않는 값들은 other_users
@@ -55,6 +54,4 @@ def find_sim_users(user_id, matrix, k=5):
     top_users_similarities = user_similarity_sorted[:k]
     users = [i[0] for i in top_users_similarities]
 
-    print(users)
-    print(type(users))
     return users

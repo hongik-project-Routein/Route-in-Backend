@@ -155,8 +155,6 @@ def kakao_callback(request):
     image_url = None
     if user.image:
         image_url = request.build_absolute_uri(user.image.url)
-    else:
-        image_url = None
     accept_json['image'] = image_url
     accept_json['email'] = user.email
     accept_json['age'] = user.age
@@ -165,7 +163,7 @@ def kakao_callback(request):
     accept_json['following_set'] = list(user.following_set.values_list('uname', flat=True))
 
     accept_json.pop('user', None)
-
+    print(accept_json)
     return JsonResponse(accept_json)
 
 

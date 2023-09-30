@@ -18,7 +18,7 @@ def get_place(sim_users, target_user):
             sim_users_where_temp2 = sim_users_where_temp2 + sim_users_where_temp1
         sim_users_where = "(" + sim_users_where_temp2 + ")"
         sim_users_where = sim_users_where.replace(",)", ")")
-        # print(sim_users_where)
+        print(sim_users_where)
 
     query_str = """
         SELECT userId, mapId FROM `{}` 
@@ -40,7 +40,9 @@ def get_place(sim_users, target_user):
 
     sim_place_list = []
     query_result = query_job.result()
+    print('query_result: ', query_result)
     for r in query_result:
+        print('r: ', r)
         sim_place_list.append([r['userId'], r['mapId']])
-
+    print('sim_place_list: ', sim_place_list)
     return sim_place_list

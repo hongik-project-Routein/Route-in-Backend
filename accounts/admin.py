@@ -15,6 +15,7 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password',)}),
         ('Personal info', {'fields': ('uname', 'name', 'age', 'gender', 'image')}),
+        ('Relationships', {'fields': ('sim_users',)}),
         ('Permissions', {'fields': ('is_superuser',)}),
     )
 
