@@ -411,11 +411,9 @@ class CommentLikeAPIView(APIView):
         if user in comment.like_users.all():
             # 이미 좋아요한 경우
             comment.like_users.remove(user)
-            comment.save()
             return Response('좋아요 취소', status=status.HTTP_200_OK)
         else:
             comment.like_users.add(user)
-            comment.save()
             return Response('좋아요 성공', status=status.HTTP_200_OK)
 
     queryset = Comment.objects.filter(is_deleted=False)
