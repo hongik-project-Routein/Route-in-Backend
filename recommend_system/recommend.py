@@ -5,27 +5,24 @@ client = bigquery.Client()
 table_id = "carbon-inkwell-290604.route_in.sentimental_score"
 
 def get_place(sim_users, target_user):
-    # 유사한 유저 1명인 경우
-    if len(sim_users) == 1:
+    if len(sim_users) == 1:  # 유사한 유저 1명인 경우
         for i in sim_users:
             sim_users_where = "(" + i + ")"
-        # print(sim_users_where)
-    # 유사한 유저 여러명
-    else:
+
+    else:  # 유사한 유저 여러명
         sim_users_where_temp2 = ""
         for i in sim_users:
             sim_users_where_temp1 = "\'{}\'".format(i) + ","
             sim_users_where_temp2 = sim_users_where_temp2 + sim_users_where_temp1
         sim_users_where = "(" + sim_users_where_temp2 + ")"
         sim_users_where = sim_users_where.replace(",)", ")")
-        print(sim_users_where)
 
     query_str = """
         SELECT userId, mapId FROM `{}` 
         WHERE 
             userId IN {}
             AND userId != '{}'
-            AND score = '1'
+            AND score >= '0.5'
     """.format(table_id, sim_users_where, target_user)
 
     query_job = client.query(
@@ -39,10 +36,9 @@ def get_place(sim_users, target_user):
     # print(query_df)
 
     sim_place_list = []
+
     query_result = query_job.result()
-    print('query_result: ', query_result)
     for r in query_result:
-        print('r: ', r)
         sim_place_list.append([r['userId'], r['mapId']])
-    print('sim_place_list: ', sim_place_list)
+    print(sim_place_list)
     return sim_place_list

@@ -102,7 +102,7 @@ class PostListAPIView(ListAPIView):
     serializer_class = PostListSerializer
     pagination_class = PageNumberPagination
     filter_backends = [SearchFilter]
-    search_fields = ['content']
+    search_fields = ['hashtags']
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -144,11 +144,9 @@ class PostCreateAPIView(CreateAPIView):
         # 장소에 대한 긍/부정 점수 저장
         save_sa(sentiList)
 
-        # 유사한 사용자 찾기
-        for sim_user in find_sim_users(user.uname, pi_pd_df):
-            new_user = get_object_or_404(User, uname=sim_user)
-            user.sim_users.add(new_user)
-            user.save()
+        # 유사한 사용자 업데이트
+        update_sim_users(user.uname)
+        print('HERE ' * 10)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -157,7 +155,6 @@ class PostCreateAPIView(CreateAPIView):
         self.perform_create(serializer, user)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
 
     queryset = Post.objects.filter(is_deleted=False)
     serializer_class = PostCreateSerializer
@@ -514,41 +511,32 @@ class UserBookmarkListAPIView(PostListAPIView):
 게시글 추천 (GET)
 api/recommend/post/
 '''
-class PostRecommendListAPIView(ListAPIView):
+class PostRecommendListAPIView(PostListAPIView):
     def get_queryset(self):
-        # user = self.request.user
-        user = get_object_or_404(User, uname='kshkakao')
-        print('target_user: ', user)
-        queryset = Post.objects.none()
+        user = self.request.user
+        # user = get_object_or_404(User, uname='kshkakao')
         sim_users = [sim_user.uname for sim_user in user.sim_users.all()]
-        print('sim_users: ', sim_users)
-        getp = get_place(sim_users, user)
-        print('get_place: ', getp)
+        post_id_list = []
         if sim_users:
-            for userID, mapID in getp:
+            for userID, mapID in get_place(sim_users, user):
                 target_user = User.objects.get(uname=userID)
                 user_posts = target_user.writed_posts.filter(is_deleted=False)
-                post = user_posts.filter(pins__mapID=mapID)
-                queryset = queryset.union(post)
-        else:
-            print("There is no one in sim_users.")
-
+                recom_posts = user_posts.filter(pins__mapID=mapID)
+                post_id_list.extend(recom_posts.values_list('id', flat=True))
+        print(post_id_list)
+        queryset = Post.objects.filter(id__in=post_id_list)
         return queryset
-
-    serializer_class = PostListSerializer
 
 
 '''
-유사한 유저 추천 (GET)
+유사한 유저 목록 (GET)
 api/recommend/user/
 '''
 class UserRecommendListAPIView(ListAPIView):
     def get_queryset(self):
-        # user = self.request.user
-        user = get_object_or_404(User, uname='kshkakao')
-        recom_users = find_sim_users(user.uname, pi_pd_df)
-        queryset = User.objects.filter(uname__in=recom_users)
-
+        user = self.request.user
+        queryset = user.sim_users.all()
+        print('(api/views.py:539) user.sim_users', queryset)
         return queryset
 
     serializer_class = UserSerializer
@@ -565,6 +553,7 @@ class CustomRegisterView(RegisterView):
             return Response('회원가입 성공', status=status.HTTP_201_CREATED)
         else:
             return Response('회원가입 실패', status=status.HTTP_400_BAD_REQUEST)
+
 
 '''
 일반 사용자 로그인
@@ -593,13 +582,14 @@ class CustomLoginView(LoginView):
         self.serializer.is_valid(raise_exception=True)
 
         self.login()
+        user = self.user
+        if user:
+            # 유사한 사용자 업데이트
+            update_sim_users(user.uname)
+            print('(api/views.py:599) sim_users:', user.sim_users.all())
 
-        if self.user:
-            response_data = self.custom_response(self.user)
+            response_data = self.custom_response(user)
 
             if hasattr(self, 'access_token'):
                 response_data['access'] = str(self.access_token)
-            print(response_data)
             return Response(response_data, status=status.HTTP_200_OK)
-
-        # return self.get_response()

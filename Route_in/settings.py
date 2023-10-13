@@ -135,7 +135,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
 
         # for local testing
-        'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
 
         # 'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
    ],

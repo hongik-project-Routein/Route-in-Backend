@@ -125,6 +125,7 @@ plt.rcParams['font.size'] = 20
 plt.rcParams['figure.figsize'] = 16, 10
 plt.rcParams['axes.unicode_minus'] = False
 
+
 '''
 From here
 '''
@@ -243,6 +244,7 @@ pickle
 # 저장하기
 with open("all_reviews.pickle", "wb") as fw:
     pickle.dump(tokenizer, fw)
+
 
 
 '''

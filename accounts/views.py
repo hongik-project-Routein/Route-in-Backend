@@ -9,6 +9,7 @@ from django.http import JsonResponse
 import requests
 from rest_framework import status
 from json.decoder import JSONDecodeError
+from api.views import update_sim_users
 
 
 state = getattr(settings, 'STATE')
@@ -69,6 +70,10 @@ def google_callback(request):
         accept_json = accept.json()
 
     user = User.objects.get(email=email)
+
+    # 유사한 사용자 업데이트
+    update_sim_users(user.uname)
+
     accept_json['name'] = user.name
     accept_json['uname'] = user.uname
     # 이미지 경로를 절대 URL로 생성
@@ -149,6 +154,10 @@ def kakao_callback(request):
         accept_json = accept.json()
 
     user = User.objects.get(email=email)
+
+    # 유사한 사용자 업데이트
+    update_sim_users(user.uname)
+
     accept_json['name'] = user.name
     accept_json['uname'] = user.uname
     # 이미지 경로를 절대 URL로 생성
