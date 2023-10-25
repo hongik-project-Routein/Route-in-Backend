@@ -123,10 +123,25 @@ class PostListAPIView(ListAPIView):
 
 
 '''
+특정 유저 게시글 목록(GET)
+api/user/<str:uname>/post/
+'''
+class UserPostListAPIView(PostListAPIView):
+    def get_queryset(self):
+        uname = self.kwargs['uname']
+        queryset = Post.objects.filter(writer__uname=uname, is_deleted=False).order_by('-created_at')
+
+        return queryset
+
+
+'''
 새로운 게시글 생성(POST)
 api/post/create/
 '''
 class PostCreateAPIView(CreateAPIView):
+    queryset = Post.objects.filter(is_deleted=False)
+    serializer_class = PostCreateSerializer
+
     def perform_create(self, serializer, user):
         writer = self.request.user
         serializer.save(writer=writer)
@@ -146,7 +161,6 @@ class PostCreateAPIView(CreateAPIView):
 
         # 유사한 사용자 업데이트
         update_sim_users(user.uname)
-        print('HERE ' * 10)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -155,9 +169,6 @@ class PostCreateAPIView(CreateAPIView):
         self.perform_create(serializer, user)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    queryset = Post.objects.filter(is_deleted=False)
-    serializer_class = PostCreateSerializer
 
 
 '''
