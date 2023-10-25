@@ -13,8 +13,10 @@ from api.views import update_sim_users
 
 
 state = getattr(settings, 'STATE')
-BASE_URL = 'http://localhost:8000/'
+# BASE_URL = 'http://localhost:8000/'
+BASE_URL = 'http://34.64.127.233:8000/'
 GOOGLE_CALLBACK_URI = BASE_URL + 'accounts/google/callback/'
+
 
 
 def google_callback(request):
@@ -100,7 +102,7 @@ class GoogleLogin(SocialLoginView):
     client_class = OAuth2Client
 
 
-KAKAO_CALLBACK_URI = getattr(settings, 'KAKAO_REDIRECT_URI')
+KAKAO_CALLBACK_URI = BASE_URL + 'accounts/kakao/callback/'
 
 
 def kakao_callback(request):
