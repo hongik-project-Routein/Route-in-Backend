@@ -62,7 +62,7 @@ def update_sim_users(user_id, k=5):
         # 딕셔너리 정렬
         # key=operator.itemgetter(1) -> 오름차순 정렬 -> reverse -> 내림차순
         user_similarity_sorted = sorted(user_similarity.items(), key=operator.itemgetter(1), reverse=True)
-        print(user_similarity_sorted)
+        print('(find_similar_user:65)', user_similarity_sorted)
 
         # 가장 높은 유사도를 가진 유저의 uname k개 정렬
         top_users_similarities = user_similarity_sorted[:k]

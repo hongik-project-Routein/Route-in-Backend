@@ -22,7 +22,8 @@ DEBUG = True
 #################################
 ALLOWED_HOSTS = ['*']
 AUTH_USER_MODEL = 'accounts.User'
-SITE_ID = 1
+# SITE_ID = 1
+SITE_ID = 4
 #################################
 
 
@@ -90,26 +91,25 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'Route_in.urls'
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://localhost:8000",
     "http://34.64.127.233",
-    "http://34.64.127.233:3000",
-    "http://34.64.127.233:8000",
+    "http://routein.site",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = list(default_headers) + ['X-CSRFTOKEN']
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://localhost:8000",
     "http://34.64.127.233",
-    "http://34.64.127.233:3000",
-    "http://34.64.127.233:8000",
+    "http://routein.site",
 ]
 
 TEMPLATES = [
@@ -182,7 +182,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
+# Internatijjonalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Seoul'
 USE_I18N = True
